@@ -45,12 +45,20 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
-  --sidebar-width: 232px;
+  --sidebar-width: 208px;
   --rail-width: 76px;
   --tabbar-height: 60px;
   --row-height: 40px;
   --content-max: 1240px;
   --banner-height: 30px;
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-edge: rgba(15, 23, 42, 0.08);
+  --glass-blur: saturate(180%) blur(18px);
+  --wash-1: #DBEAFE;
+  --wash-2: #E0E7FF;
+  --wash-3: #ECFDF5;
 }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -81,24 +89,36 @@ svg.icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentCol
 .brand-name { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.01em; }
 
 /* ---------- Landing ---------- */
-.landing { background: var(--color-surface); min-height: calc(100% - 30px); }
+.landing {
+  min-height: calc(100% - var(--banner-height));
+  background:
+    radial-gradient(900px 520px at 88% -8%, var(--wash-1) 0%, transparent 62%),
+    radial-gradient(760px 460px at -6% 18%, var(--wash-2) 0%, transparent 60%),
+    radial-gradient(700px 420px at 60% 72%, var(--wash-3) 0%, transparent 60%),
+    var(--color-page);
+}
+.glass { background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow-md); }
 .l-wrap { max-width: 1120px; margin: 0 auto; padding-inline: var(--space-5); }
-.l-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-4); border-bottom: 1px solid var(--color-border); }
-.l-top nav { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
-.l-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-7); align-items: center; padding-block: var(--space-8); }
+.l-top-wrap { position: sticky; top: calc(var(--banner-height) + 12px); z-index: 10; padding-inline: var(--space-4); margin-top: 12px; }
+.l-top.glass { background: rgba(255, 255, 255, 0.86); }
+.l-top { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 6px 6px 6px 16px; border-radius: 16px; }
+.l-top .btn { height: 32px; }
+.l-top nav { display: flex; align-items: center; gap: 2px; }
+.l-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-7); align-items: center; padding-block: var(--space-7) var(--space-8); }
 .eyebrow { font-size: var(--text-sm); font-weight: 600; color: var(--color-primary); margin: 0 0 var(--space-3); }
 .l-hero h1 { font-size: var(--text-hero); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
 .l-hero .lead { font-size: 17px; color: var(--color-text-secondary); margin: var(--space-4) 0 var(--space-5); max-width: 34em; }
 .l-hero .hint { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-3); }
-.preview { border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); overflow: hidden; background: var(--color-surface); }
-.preview-bar { display: flex; gap: 6px; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface-subtle); align-items: center; }
-.preview-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--color-border); display: block; }
+.preview { border-radius: 18px; overflow: hidden; padding: 6px; }
+.preview-inner { border-radius: 13px; overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); }
+.preview-bar { display: flex; gap: 6px; padding: 10px var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-page); align-items: center; }
+.preview-bar i { width: 10px; height: 10px; border-radius: 50%; background: #CBD5E1; display: block; }
 .preview-bar span { margin-left: var(--space-2); font-size: var(--text-xs); color: var(--color-text-muted); }
 .preview-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .preview-fields { border-right: 1px solid var(--color-border); }
 .preview-paper { background: var(--color-pdf-desk); padding: var(--space-3); }
 .preview-paper .paper { min-height: 0; padding: var(--space-4); font-size: var(--text-xs); box-shadow: var(--shadow-sm); }
-.l-section { padding-block: var(--space-7); border-top: 1px solid var(--color-border); }
+.l-section { padding-block: var(--space-6); }
 .l-section h2 { font-size: var(--text-lg); font-weight: 600; margin-bottom: var(--space-5); }
 .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); list-style: none; margin: 0; padding: 0; counter-reset: step; }
 .steps li { counter-increment: step; }
@@ -106,11 +126,11 @@ svg.icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentCol
 .steps h3, .principles h3 { font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-1); }
 .steps p, .principles p { margin: 0; color: var(--color-text-secondary); font-size: var(--text-sm); }
 .principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
-.principle { padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-page); }
+.principle { padding: var(--space-5); border-radius: 16px; }
 .principle svg.icon { color: var(--color-primary); margin-bottom: var(--space-3); width: 22px; height: 22px; }
-.l-cta { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: space-between; padding: var(--space-5); border-radius: var(--radius-lg); background: var(--color-page); border: 1px solid var(--color-border); }
+.l-cta { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: space-between; padding: var(--space-5); border-radius: 16px; }
 .l-cta p { margin: 0; color: var(--color-text-secondary); }
-.l-foot { padding-block: var(--space-5) var(--space-6); font-size: var(--text-xs); color: var(--color-text-muted); border-top: 1px solid var(--color-border); }
+.l-foot { padding-block: var(--space-5) var(--space-6); font-size: var(--text-xs); color: var(--color-text-muted); }
 
 /* ---------- App shell ---------- */
 .app { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: calc(100% - 30px); }
@@ -150,7 +170,7 @@ svg.icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentCol
 .sample-card strong { color: var(--color-text); font-size: var(--text-sm); }
 
 .workspace { min-width: 0; display: flex; flex-direction: column; }
-.mobile-head { display: none; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-surface); border-bottom: 1px solid var(--color-border); position: sticky; top: var(--banner-height); z-index: 10; }
+.mobile-head { display: none; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--color-border); position: sticky; top: var(--banner-height); z-index: 10; }
 .sample-strip { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-6); background: var(--color-primary-soft); color: var(--color-primary-hover); font-size: var(--text-sm); }
 .main { padding: var(--space-6); width: 100%; max-width: calc(var(--content-max) + 64px); min-width: 0; outline: none; }
 .page-head { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-5); }
@@ -285,7 +305,7 @@ mark.q { background: var(--color-highlight-bg); outline: 2px solid var(--color-h
 .readonly { padding: var(--space-3); background: var(--color-surface-subtle); border-radius: var(--radius-md); font-size: var(--text-sm); }
 
 /* Dialog + toast */
-.overlay { position: fixed; inset: 0; background: var(--color-overlay); display: grid; place-items: center; padding: var(--space-4); z-index: 20; }
+.overlay { position: fixed; inset: 0; background: var(--color-overlay); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: grid; place-items: center; padding: var(--space-4); z-index: 20; }
 .dialog { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); width: min(560px, 100%); max-height: 90vh; overflow: auto; }
 .dialog-sm { width: min(400px, 100%); }
 .dialog-head { padding: var(--space-5) var(--space-5) 0; }
@@ -296,6 +316,11 @@ mark.q { background: var(--color-highlight-bg); outline: 2px solid var(--color-h
 .auth-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--color-primary-soft); color: var(--color-primary); display: grid; place-items: center; margin-bottom: var(--space-3); }
 .auth-icon svg.icon { width: 22px; height: 22px; }
 .auth-form { display: grid; gap: var(--space-3); }
+.demo-box { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-primary-soft); }
+.demo-box strong { display: block; font-size: var(--text-sm); color: var(--color-primary-hover); }
+.demo-box .code { font-size: var(--text-xs); color: var(--color-text-secondary); }
+.divider { display: flex; align-items: center; gap: var(--space-3); color: var(--color-text-muted); font-size: var(--text-xs); }
+.divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--color-border); }
 .auth-form .input { width: 100%; height: 38px; }
 .auth-switch { text-align: center; font-size: var(--text-sm); color: var(--color-text-secondary); padding: var(--space-3) var(--space-5) var(--space-5); }
 .label-row { display: flex; justify-content: space-between; align-items: baseline; }
@@ -328,7 +353,7 @@ mark.q { background: var(--color-highlight-bg); outline: 2px solid var(--color-h
 }
 @media (max-width: 640px) {
   .app { grid-template-columns: minmax(0, 1fr); padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px)); }
-  .sidebar { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: auto; z-index: 12; flex-direction: row; padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px)); border-right: 0; border-top: 1px solid var(--color-border); background: var(--color-surface); }
+  .sidebar { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: auto; z-index: 12; flex-direction: row; padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px)); border-right: 0; border-top: 1px solid var(--glass-edge); background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
   .sidebar > .brand, .account { display: none; }
   .nav { flex-direction: row; width: 100%; justify-content: space-around; }
   .nav button { flex: 1; min-width: 0; }
@@ -625,10 +650,10 @@ function icon(name) { return `<svg class="icon" viewBox="0 0 24 24" aria-hidden=
 
 /* ---------- Navigation ---------- */
 const NAV = [
-  { name: "upload", label: "Upload documents", short: "Upload", icon: "upload" },
+  { name: "upload", label: "Upload", short: "Upload", icon: "upload" },
   { name: "documents", label: "Review", short: "Review", icon: "review", count: () => docsToReview().length, countKind: "review" },
   { name: "inventory", label: "Inventory", short: "Inventory", icon: "inventory", count: () => state.products.length },
-  { name: "action", label: "Needs action", short: "Action", icon: "action", count: () => allFlags().length, countKind: "review" },
+  { name: "action", label: "Actions", short: "Actions", icon: "action", count: () => allFlags().length, countKind: "review" },
   { name: "settings", label: "Settings", short: "Settings", icon: "settings" }
 ];
 const APP_ROUTES = ["upload", "documents", "inventory", "action", "settings"];
@@ -677,7 +702,7 @@ function renderShell() {
     const menu = state.menuOpen ? `<div class="menu" role="menu">
         <button type="button" role="menuitem" data-nav="settings">${icon("settings")}Settings</button><hr>
         <button type="button" role="menuitem" id="sign-out">${icon("logout")}Sign out</button></div>` : "";
-    account.innerHTML = `<div class="mode-line" title="Files are processed by a local model"><i class="dot"></i><span>Local model · files stay private</span></div>
+    account.innerHTML = `<div class="mode-line" title="Files are processed by a local model"><i class="dot"></i><span>Local model · private</span></div>
       <button class="account-btn" type="button" id="account-btn" aria-haspopup="menu" aria-expanded="${state.menuOpen}">
         <span class="avatar" aria-hidden="true">${esc(initials(state.auth.name))}</span>
         <span class="account-meta"><strong>${esc(state.auth.name)}</strong><span>${esc(state.auth.email)}</span></span></button>${menu}`;
@@ -695,15 +720,16 @@ function renderShell() {
 /* ---------- Public landing page ---------- */
 function renderLanding() {
   return `
-  <div class="l-wrap">
-    <header class="l-top">
+  <div class="l-top-wrap">
+    <header class="l-top glass">
       <button class="brand" type="button" data-home><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">ChemReady</span></button>
       <nav aria-label="Site">
         <a class="btn btn-plain hide-sm" href="#how" data-scroll="how">How it works</a>
-        <button class="btn btn-plain" type="button" data-explore>Explore sample</button>
-        ${state.auth ? `<button class="btn btn-primary" type="button" data-nav="inventory">Open workspace</button>` : `<button class="btn btn-secondary" type="button" data-signin data-intent="inventory">Sign in</button>`}
+        ${state.auth ? `<button class="btn btn-primary" type="button" data-nav="inventory">Open app</button>` : `<button class="btn btn-plain" type="button" data-signin data-intent="inventory">Sign in</button><button class="btn btn-primary" type="button" data-demo-login data-intent="inventory">Try demo</button>`}
       </nav>
     </header>
+  </div>
+  <div class="l-wrap">
     <section class="l-hero">
       <div>
         <p class="eyebrow">For chemical and compliance managers in textile wet processing</p>
@@ -711,11 +737,11 @@ function renderLanding() {
         <p class="lead">ChemReady reads your safety data sheets, checks every value in code, and asks you to approve only what is doubtful. Every value links back to its page and quote.</p>
         <div class="row">
           <button class="btn btn-primary btn-lg" type="button" data-nav="upload">${icon("upload")}Upload documents</button>
-          <button class="btn btn-secondary btn-lg" type="button" data-explore>Explore with sample data</button>
+          <button class="btn btn-secondary btn-lg" type="button" data-demo-login data-intent="inventory">Try the demo</button>
         </div>
-        <p class="hint">No account needed to explore. You sign in only when you upload your own files.</p>
+        <p class="hint">Demo login: <span class="code">demo@chemready.app</span> / <span class="code">demo1234</span> · or <button class="btn-link" type="button" data-explore>explore without an account</button></p>
       </div>
-      <div class="preview" aria-label="Example of the review screen">
+      <div class="preview glass" aria-label="Example of the review screen"><div class="preview-inner">
         <div class="preview-bar"><i></i><i></i><i></i><span>Review · Demowet NF</span></div>
         <div class="preview-body">
           <div class="preview-fields">
@@ -730,7 +756,7 @@ function renderLanding() {
             <div class="ln sec">SECTION 1: Identification</div><div class="ln">Product name: Demowet NF</div><div class="ln">Supplier: Example Auxiliaries Ltd</div>
             <div class="ln"><mark class="q">Date of revision: 01.03.2025</mark></div><div class="ln muted">Print date: 12.04.2025</div></div></div>
         </div>
-      </div>
+      </div></div>
     </section>
     <section class="l-section" id="how">
       <h2>How it works</h2>
@@ -744,13 +770,13 @@ function renderLanding() {
     <section class="l-section">
       <h2>Built to be trusted by auditors</h2>
       <div class="principles">
-        <div class="principle">${icon("shield")}<h3>The AI never guesses</h3><p>If a value is unsure or fails a check, it goes to a person. Nothing enters your inventory without approval.</p></div>
-        <div class="principle">${icon("quote")}<h3>Every value is traced</h3><p>Each value keeps its page number and exact quote, so anyone can check where it came from.</p></div>
-        <div class="principle">${icon("scale")}<h3>No conformance claims</h3><p>ChemReady checks your data, not regulation. MRSL conformance stays with the ZDHC Gateway and your solution provider.</p></div>
+        <div class="principle glass">${icon("shield")}<h3>The AI never guesses</h3><p>If a value is unsure or fails a check, it goes to a person. Nothing enters your inventory without approval.</p></div>
+        <div class="principle glass">${icon("quote")}<h3>Every value is traced</h3><p>Each value keeps its page number and exact quote, so anyone can check where it came from.</p></div>
+        <div class="principle glass">${icon("scale")}<h3>No conformance claims</h3><p>ChemReady checks your data, not regulation. MRSL conformance stays with the ZDHC Gateway and your solution provider.</p></div>
       </div>
     </section>
     <section class="l-section">
-      <div class="l-cta"><p><strong style="color:var(--color-text)">Your files stay private.</strong> Factory files are processed by a local model and are never sent to a free AI service.</p>
+      <div class="l-cta glass"><p><strong style="color:var(--color-text)">Your files stay private.</strong> Factory files are processed by a local model and are never sent to a free AI service.</p>
         <button class="btn btn-primary" type="button" data-nav="upload">${icon("upload")}Upload documents</button></div>
     </section>
     <footer class="l-foot">ChemReady prototype. All facilities, products and suppliers shown are fictional.</footer>
@@ -798,12 +824,15 @@ function renderAuth(values) {
     foot = `<button class="btn-link" type="button" data-authmode="signin">Back to sign in</button>`;
   } else {
     head = `<h2 id="dlg-title">${esc(copy.title)}</h2><p>${esc(copy.sub)}</p>`;
-    body = `<form class="auth-form" data-authform="signin" novalidate>
+    body = `<div class="demo-box"><div><strong>Demo account</strong><span class="code">demo@chemready.app · demo1234</span></div>
+        <button class="btn btn-primary btn-sm" type="button" data-demo-login>Use demo account</button></div>
+      <div class="divider">or sign in with your account</div>
+      <form class="auth-form" data-authform="signin" novalidate>
       <div><label class="field-label" for="a-email">Work email</label><input class="input" id="a-email" type="email" autocomplete="email" value="${esc(v.email)}" ${inv("email")}>${err("email")}</div>
       <div><div class="label-row"><label class="field-label" for="a-pass">Password</label><button class="btn-link small" type="button" data-authmode="reset">Forgot password?</button></div>
         <input class="input" id="a-pass" type="password" autocomplete="current-password" ${inv("pass")}>${err("pass")}</div>
       <button class="btn btn-primary btn-block" type="submit" style="height:38px">Sign in</button>
-      <p class="xs muted" style="margin:0;text-align:center">Prototype: any email and password of 8 or more characters works.</p></form>`;
+      <p class="xs muted" style="margin:0;text-align:center">Prototype: any email with a password of 8 or more characters also works.</p></form>`;
     foot = `New to ChemReady? <button class="btn-link" type="button" data-authmode="signup">Create an account</button>`;
   }
   showDialog(`<div class="dialog-head"><div class="auth-icon">${icon("lock")}</div>${head}</div>
@@ -824,13 +853,23 @@ function submitAuth(kind) {
   state.authErrors = e;
   if (Object.keys(e).length) { renderAuth(v); const first = document.querySelector('[aria-invalid="true"]'); first && first.focus(); return; }
   if (kind === "reset") { state.authMode = "reset-sent"; renderAuth(v); return; }
-  state.auth = { name: kind === "signup" ? v.name : nameFromEmail(v.email), email: v.email };
+  const isDemo = kind === "signin" && v.email.toLowerCase() === DEMO.email && pass === DEMO.password;
+  state.auth = isDemo ? { name: DEMO.name, email: DEMO.email, demo: true } : { name: kind === "signup" ? v.name : nameFromEmail(v.email), email: v.email };
   if (kind === "signup") state.settings.facility = v.facility;
   closeDialog();
   const intent = state.authIntent || "inventory";
   state.authIntent = null;
   toast(kind === "signup" ? `Account created. Welcome, ${state.auth.name}.` : `Signed in as ${state.auth.name}.`);
   go(intent);
+}
+const DEMO = { email: "demo@chemready.app", password: "demo1234", name: "Rahima Akter" };
+function demoLogin(intent) {
+  state.auth = { name: DEMO.name, email: DEMO.email, demo: true };
+  closeDialog();
+  const target = intent || state.authIntent || "inventory";
+  state.authIntent = null;
+  toast(`Signed in to the demo as ${DEMO.name}.`);
+  go(target);
 }
 function signOut() {
   state.auth = null; state.menuOpen = false;
@@ -897,7 +936,7 @@ function startProcessing(doc) {
     doc.stage++;
     if (doc.outcome === "failed" && doc.stage >= 2) {
       clearInterval(t); doc.status = "failed"; doc.reason = "Could not read text from this file. It may be a poor scan or password protected.";
-      toast(`Could not read ${doc.file}. It is listed under Needs action.`, true);
+      toast(`Could not read ${doc.file}. It is listed under Actions.`, true);
     } else if (doc.stage >= STAGES.length - 1) {
       clearInterval(t); doc.status = "review";
       const key = "r" + doc.id; state.reviews[key] = templateReview(doc.file.replace(/ SDS\.pdf$/i, "").replace(/\.pdf$/i, "")); doc.reviewKey = key;
@@ -1173,7 +1212,7 @@ function renderAction() {
   const types = { all: "All", old: "SDS too old", cas: "Missing CAS", sections: "Missing sections", unreadable: "Unreadable file" };
   const count = t => t === "all" ? flags.length : flags.filter(f => f.type === t).length;
   const rows = state.flagFilter === "all" ? flags : flags.filter(f => f.type === state.flagFilter);
-  return pageHead("Needs action", `Fix these before your monthly report. <span class="num">${flags.length}</span> open.`) +
+  return pageHead("Actions", `Fix these before your monthly report. <span class="num">${flags.length}</span> open.`) +
     `<div class="segmented" role="tablist">${Object.keys(types).map(k => `<button type="button" role="tab" data-flagfilter="${k}" aria-selected="${state.flagFilter === k}">${types[k]} <span class="count ${count(k) ? "count-review" : ""}">${count(k)}</span></button>`).join("")}</div>
     <div class="card">${!flags.length ? `<div class="empty"><h2>Nothing needs action</h2><p>Your inventory data is complete.</p></div>`
     : `<div class="table-wrap"><table class="data"><thead><tr><th>Product or file</th><th>Problem</th><th>Detail</th><th>Action</th></tr></thead><tbody>
@@ -1232,7 +1271,7 @@ function renderSettings() {
       <div><label class="field-label" for="set-provider">Solution provider</label><input class="input" style="width:100%" id="set-provider" value="${esc(s.provider)}" placeholder="The tool you upload your CIL to"><div class="help">The tool you upload your CIL to.</div></div>
       <div><label class="field-label" for="set-template">Export template</label><select class="select" style="width:100%" id="set-template"><option>${esc(s.template)}</option></select><div class="help">More templates will be added for pilot facilities.</div></div>
       <div><label class="field-label" for="set-age">SDS maximum age (years)</label><input class="input" id="set-age" type="number" min="1" max="10" step="1" value="${s.maxAge}" style="width:120px">
-        <div class="help">SDS files older than this are flagged as too old. Try 2 or 5 and watch Needs action change.</div><div class="error-text" id="age-error" hidden>Enter a whole number of years from 1 to 10.</div></div>
+        <div class="help">SDS files older than this are flagged as too old. Try 2 or 5 and watch Actions change.</div><div class="error-text" id="age-error" hidden>Enter a whole number of years from 1 to 10.</div></div>
       <div><span class="field-label">Processing mode</span><div class="readonly"><strong>Local model.</strong> Set by your administrator. Private factory files are never sent to a free AI service.</div></div>
       <div><button class="btn btn-primary" type="submit">Save settings</button></div>
     </form></div>`;
@@ -1263,7 +1302,7 @@ function noteDialog(p) {
 function showAccountSheet() {
   state.menuOpen = false;
   showDialog(`<div class="dialog-head"><div class="row"><span class="avatar">${esc(initials(state.auth.name))}</span><div class="account-meta"><strong>${esc(state.auth.name)}</strong><span>${esc(state.auth.email)}</span></div></div></div>
-    <div class="dialog-body"><div class="mode-line" style="padding:0"><i class="dot"></i>Local model · files stay private</div></div>
+    <div class="dialog-body"><div class="mode-line" style="padding:0"><i class="dot"></i>Local model · private</div></div>
     <div class="dialog-foot"><button class="btn btn-secondary" data-nav="settings">Settings</button><button class="btn btn-danger" id="sign-out">Sign out</button></div>`, "dialog-sm");
 }
 function toast(msg, isError) {
@@ -1335,6 +1374,7 @@ document.addEventListener("click", e => {
   if (d.close !== undefined) return closeDialog();
   if (t.id === "account-btn" || t.id === "account-btn-m") { state.menuOpen = !state.menuOpen; if (t.id === "account-btn-m") return showAccountSheet(); return renderShell(); }
   if (state.menuOpen && !t.closest(".menu")) { state.menuOpen = false; renderShell(); }
+  if (d.demoLogin !== undefined) return demoLogin(d.intent);
   if (d.signin !== undefined) return openAuth("signin", d.intent || (state.route.name === "landing" ? "inventory" : state.route.name));
   if (d.authmode) { const em = document.getElementById("a-email"); state.authMode = d.authmode; state.authErrors = {}; return renderAuth({ email: em ? em.value : "" }); }
   if (t.id === "sign-out") { closeDialog(); return signOut(); }
@@ -1409,6 +1449,8 @@ document.addEventListener("keydown", e => {
 });
 
 resetState();
-const startHash = ROUTE_FOR[(location.hash || "").slice(1)] || (location.hash || "").slice(1);
-go(APP_ROUTES.includes(startHash) && !NEEDS_ACCOUNT.includes(startHash) ? startHash : "landing");
+const rawHash = (location.hash || "").slice(1);
+if (rawHash === "demo" || rawHash === "app") state.auth = { name: DEMO.name, email: DEMO.email, demo: true };
+const startHash = rawHash === "demo" || rawHash === "app" ? "inventory" : ROUTE_FOR[rawHash] || rawHash;
+go(APP_ROUTES.includes(startHash) && (state.auth || !NEEDS_ACCOUNT.includes(startHash)) ? startHash : "landing");
 </script>

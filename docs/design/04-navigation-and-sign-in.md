@@ -16,7 +16,7 @@ where they differ, this file wins.
 
 ## Navigation
 
-Order follows the job: Upload documents → Review → Inventory → Needs action → Settings.
+Order follows the job, with short labels: Upload → Review → Inventory → Actions → Settings.
 
 | Width | Pattern |
 |---|---|
@@ -76,3 +76,13 @@ Library and setting choices are made in Phase 7 and recorded in DECISIONS.md.
 
 Should any factory be able to sign up on its own, or should pilots be invited?
 Invite only is simpler and safer for the first 2 pilots; open sign up can follow.
+
+## Refinement 2: glass and demo login
+
+- Website uses a light glass effect: a floating frosted top bar, frosted cards and
+  a soft colour wash behind. The top bar stays 86% opaque so text is readable even
+  where the browser cannot blur.
+- The app stays solid for dense data; glass only on the phone tab bar, the phone
+  top bar and behind dialogs.
+- Demo account `demo@chemready.app` / `demo1234`, one click from the website and
+  the sign in box. `#demo` in the address opens the signed in app.
