@@ -1,8 +1,14 @@
 # ChemReady
 
+[![CI](https://github.com/alqurayish/chemready/actions/workflows/ci.yml/badge.svg)](https://github.com/alqurayish/chemready/actions/workflows/ci.yml)
+
 **AI that turns chemical safety data sheets into a verified, audit ready chemical inventory. Every value is traced to its source page.**
 
-> **Status: Discovery.** I am interviewing chemical and compliance managers at Bangladesh dyeing, washing and printing facilities before writing product code. This repository is built in public. Progress, eval results and decisions will be published here as they happen.
+*ChemReady Prototype · A D-SAi Product*
+
+> **Status: Discovery.** I am interviewing chemical and compliance managers at Bangladesh dyeing, washing and printing facilities. The design is done and the code foundation is in place; no AI extraction is built yet. This repository is built in public. Progress, eval results and decisions are published here as they happen.
+
+![ChemReady prototype: review screen with the source quote highlighted](prototype/screenshots/04-review.png)
 
 ---
 
@@ -22,6 +28,18 @@ A 2023 study of six Bangladesh facilities found that 28% to 48% of chemicals wer
 
 **Principle:** if the AI is not sure, it says "not found" and sends the field to human review. It never guesses. ChemReady never claims a chemical is MRSL conformant; only the official tools decide that.
 
+## Design and prototype
+
+A clickable HTML prototype of every P0 screen, with fictional sample data, is in [`prototype/`](prototype/). Open `prototype/index.html` in a browser (no install needed). Demo login: `demo@chemready.app` / `demo1234`.
+
+| Document | What it covers |
+| --- | --- |
+| [01 Tasks, screens and flow](docs/design/01-tasks-screens-flow.md) | User tasks and the P0 screens |
+| [02 Screen specs](docs/design/02-screen-specs.md) | Layout, states and copy for each screen |
+| [03 Design system](docs/design/03-design-system.md) | Colours, type, spacing, status styles ([tokens](docs/design/tokens.css)) |
+| [04 Navigation and sign in](docs/design/04-navigation-and-sign-in.md) | Top navigation, progressive sign in, security requirements |
+| [05 Usability test](docs/design/05-usability-test.md) | Five tasks to test the prototype with chemical managers |
+
 ## Architecture (planned)
 
 ```
@@ -32,6 +50,46 @@ PDF upload
   -> Validate in code (grounding, CAS checksum, H code format)
   -> Human review of flagged fields
   -> Chemical inventory (SQLite) -> Excel export
+```
+
+## Getting started (developers)
+
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) (free). uv installs Python 3.12 for you if it is missing.
+
+```bash
+git clone https://github.com/alqurayish/chemready.git
+cd chemready
+uv sync                  # create .venv and install everything from uv.lock
+cp .env.example .env     # your local settings; .env is never committed
+uv run chemready         # prints the version and a safe settings summary
+```
+
+### Everyday commands
+
+| Task | Command |
+| --- | --- |
+| Run the tests with coverage | `uv run pytest --cov` |
+| Lint | `uv run ruff check` (add `--fix` to fix safe issues) |
+| Format | `uv run ruff format` |
+| Type check | `uv run mypy` |
+
+GitHub Actions runs all four on every push and pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Coverage below 90% fails the build.
+
+### Configuration and privacy
+
+All settings come from environment variables with the prefix `CHEMREADY_`, or from a local `.env` file. See [`.env.example`](.env.example).
+
+- The default model provider is **Ollama**, which runs locally, so private factory files stay on your machine.
+- **Gemini** needs `CHEMREADY_GEMINI_API_KEY` and `CHEMREADY_GEMINI_MODEL`. While `CHEMREADY_GEMINI_FREE_TIER=true`, ChemReady treats Gemini as **public SDS files only**, because Google's free tier may use submitted content to improve its products.
+- Secrets are stored as `SecretStr` and never printed. `data/private/` and `.env` are git ignored.
+
+### Project layout
+
+```
+src/chemready/   application code (config and command line today)
+tests/           pytest tests
+docs/design/     product design documents
+prototype/       clickable HTML prototype
 ```
 
 ## Planned stack
@@ -51,10 +109,13 @@ Results will be measured on a hand labelled gold set of 30 safety data sheets an
 
 ## Roadmap
 
+- [x] Product design: user flow, screen specs, design system and clickable prototype
+- [x] Code foundation: project setup, typed config with a privacy rule, lint, type checks, tests and CI
 - [ ] Customer discovery: 10 interviews with chemical and compliance managers
 - [ ] Gold set of 30 labelled safety data sheets and an eval script
+- [ ] PDF parsing and section splitting
 - [ ] Extraction engine with validation
-- [ ] Review screen, inventory and Excel export
+- [ ] Backend, review screen, inventory and Excel export
 - [ ] Pilot with 2 facilities
 - [ ] Public demo
 
@@ -64,7 +125,7 @@ I would like to learn how you prepare your chemical inventory today. Reach me on
 
 ## Author
 
-**Md Alqurayish Sharkar**, AI Product Engineer and Founder of [D-SAi](https://d-sai.com).
+**Md. Alqurayish Sharkar**, AI Product Engineer and Founder of [D-SAi](https://d-sai.com). ChemReady is a D-SAi product.
 
 ## Sources
 
