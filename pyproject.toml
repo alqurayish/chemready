@@ -23,6 +23,8 @@ packages = ["src/chemready"]
 [dependency-groups]
 dev = [
     "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
     "ruff>=0.8",
 ]
 
@@ -43,9 +45,22 @@ select = ["E", "W", "F", "I", "B", "UP", "SIM", "N", "S", "RUF"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src"]
+files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["chemready"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+exclude_also = ['if __name__ == "__main__":']
