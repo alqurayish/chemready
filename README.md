@@ -4,128 +4,163 @@
 
 **AI that turns chemical safety data sheets into a verified, audit ready chemical inventory. Every value is traced to its source page.**
 
-*ChemReady Prototype · A D-SAi Product*
+*ChemReady Prototype · A D-SAi Product · by Md. Alqurayish Sharkar, AI Product Engineer*
 
-> **Status: Discovery.** I am interviewing chemical and compliance managers at Bangladesh dyeing, washing and printing facilities. The design is done and the code foundation is in place; no AI extraction is built yet. This repository is built in public. Progress, eval results and decisions are published here as they happen.
+> **Status: Discovery and working MVP.** The full pipeline (upload, PDF parsing, AI
+> extraction, validation, human review, inventory, action flags and Excel export) is
+> built and tested on fictional files. Real accuracy numbers wait for the hand-labelled
+> gold set of public SDS files and customer interviews. Nothing in this repository
+> claims accuracy on real data yet.
 
-![ChemReady prototype: review screen with the source quote highlighted](prototype/screenshots/04-review.png)
+![ChemReady review screen: the flagged field first, the source quote highlighted on the page](docs/screenshots/app-review.png)
 
 ---
 
 ## The problem
 
-Wet processing facilities that supply global fashion brands use roughly 170 to 200 chemical products each. Every product should have a safety data sheet (SDS), and brands expect a monthly chemical inventory screened against the ZDHC Manufacturing Restricted Substances List (MRSL).
+Wet processing facilities that supply global fashion brands use roughly 170 to 200
+chemical products each. Every product should have a safety data sheet (SDS), and brands
+expect a monthly chemical inventory screened against the ZDHC Manufacturing Restricted
+Substances List (MRSL). A 2023 study of six Bangladesh facilities found that 28% to 48%
+of chemicals were still "not evaluated". Building the inventory from PDF safety data
+sheets is slow, manual work, and mistakes are risky.
 
-A 2023 study of six Bangladesh facilities found that 28% to 48% of chemicals were still "not evaluated" against the MRSL. Building and maintaining the inventory from PDF safety data sheets is slow, manual work, and mistakes are risky.
+## What ChemReady does
 
-## What ChemReady will do
+1. **Upload** up to 50 SDS PDFs at once. Non-PDFs and duplicates are rejected with a reason.
+2. **Extract** product, supplier, revision date, signal word, H codes, pictograms,
+   ingredients with CAS numbers, PPE and storage. Every value carries its page and exact quote.
+3. **Validate** in plain code: the quote must be in the PDF and in the right section,
+   CAS numbers must pass the check digit, H codes must be well formed.
+4. **Review**: a person sees doubtful fields first, next to the highlighted source, and
+   approves, edits or marks them missing. Nothing enters the inventory without approval.
+5. **Act and export**: action flags (old SDS, missing CAS, missing sections, unreadable
+   files) and an Excel chemical inventory list.
 
-1. **Upload** a batch of supplier SDS PDFs.
-2. **Extract** key fields with an LLM: product, supplier, revision date, hazard codes, pictograms, ingredients with CAS numbers, PPE and storage. Every value carries its page number and exact quote.
-3. **Validate** with plain code, not AI: the quote must exist in the PDF, CAS numbers must pass the check digit, hazard codes must be well formed.
-4. **Review**: a person approves or edits only the doubtful fields.
-5. **Export** an audit ready chemical inventory in Excel, with missing and outdated data flagged.
+**Principles:** the AI never guesses (unsure means "not found" and human review). Private
+factory files never go to a free AI tier. ChemReady never claims a chemical is MRSL
+conformant; only the ZDHC Gateway and the factory's solution provider decide that.
 
-**Principle:** if the AI is not sure, it says "not found" and sends the field to human review. It never guesses. ChemReady never claims a chemical is MRSL conformant; only the official tools decide that.
+## Architecture
 
-## Design and prototype
+```mermaid
+flowchart LR
+    U[Upload PDFs] --> P[Parse text per page<br/>PyMuPDF, scan detection]
+    P --> S[Split 16 GHS sections]
+    S --> E[Extract with AI<br/>llm.extract: Ollama / Gemini / rules]
+    E --> V[Validate in code<br/>grounding, page, section,<br/>CAS, H code, date]
+    V --> R[Human review<br/>flagged fields first]
+    R --> I[Inventory + action flags]
+    I --> X[Excel CIL export]
+    E -. every call .-> T[(model_call trace<br/>tokens, time, cost)]
+    V -. every value .-> F[(field_value audit trail<br/>page, quote, checks, reviewer)]
+```
 
-A clickable HTML prototype of every P0 screen, with fictional sample data, is in [`prototype/`](prototype/). Open `prototype/index.html` in a browser (no install needed). Demo login: `demo@chemready.app` / `demo1234`.
+The AI does one job: reading messy PDFs into a fixed schema. Plain code checks every
+value, a person approves what is doubtful, and the database keeps the source of every
+value so any auditor can trace it.
 
-| Document | What it covers |
+| Layer | Code |
 | --- | --- |
-| [01 Tasks, screens and flow](docs/design/01-tasks-screens-flow.md) | User tasks and the P0 screens |
-| [02 Screen specs](docs/design/02-screen-specs.md) | Layout, states and copy for each screen |
-| [03 Design system](docs/design/03-design-system.md) | Colours, type, spacing, status styles ([tokens](docs/design/tokens.css)) |
-| [04 Navigation and sign in](docs/design/04-navigation-and-sign-in.md) | Top navigation, progressive sign in, security requirements |
-| [05 Usability test](docs/design/05-usability-test.md) | Five tasks to test the prototype with chemical managers |
+| PDF parsing and sections | [`src/chemready/pdf/`](src/chemready/pdf/) |
+| Schema (value + page + quote) | [`src/chemready/schema.py`](src/chemready/schema.py) |
+| Model layer and prompt | [`src/chemready/extraction/`](src/chemready/extraction/) |
+| Validation | [`src/chemready/validation/`](src/chemready/validation/) |
+| Evals | [`src/chemready/evals/`](src/chemready/evals/), [`evals/`](evals/) |
+| Database, API, background worker | [`src/chemready/app/`](src/chemready/app/) |
+| Pages (Jinja2) | [`src/chemready/app/templates/`](src/chemready/app/templates/) |
 
-## Architecture (planned)
+## Eval results
 
-```
-PDF upload
-  -> Parse text per page (PyMuPDF; scans go to OCR)
-  -> Split into the 16 GHS sections
-  -> Extract with LLM into a Pydantic schema (value + page + quote)
-  -> Validate in code (grounding, CAS checksum, H code format)
-  -> Human review of flagged fields
-  -> Chemical inventory (SQLite) -> Excel export
-```
+| Run | Data | Field accuracy | H code + CAS recall | Hallucination rate | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Pipeline check | 4 fictional SDS, rules baseline | 100% | 100% | 0% | Software test only. Tidy fictional files; says nothing about real SDS. Runs in CI on every push. |
+| v1 (AI) | 30 real public SDS | – | – | – | **Not run yet.** Needs the gold set ([how to collect it](docs/data/collecting-sds.md)). |
 
-## Getting started (developers)
+Targets (PRD): field accuracy ≥ 95%, H code and CAS recall ≥ 95%, 0% hallucinations,
+calibration ≥ 98%, 10% to 25% of fields sent to review, under 30 s per SDS. Real runs are
+logged in [`evals/results.md`](evals/results.md).
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) (free). uv installs Python 3.12 for you if it is missing.
+## Try it
+
+### Demo on your computer (no AI account needed)
 
 ```bash
-git clone https://github.com/alqurayish/chemready.git
-cd chemready
-uv sync                  # create .venv and install everything from uv.lock
-cp .env.example .env     # your local settings; .env is never committed
-uv run chemready         # prints the version and a safe settings summary
+git clone https://github.com/alqurayish/chemready.git && cd chemready
+uv sync                                   # install (needs uv: docs.astral.sh/uv)
+uv run chemready seed-demo                # demo account with fictional SDS files
+CHEMREADY_LLM_PROVIDER=rules uv run chemready serve
 ```
 
-### Everyday commands
+Open http://127.0.0.1:8000 and click **Try the demo** (`demo@chemready.app` / `demo1234`).
+
+### With Docker
+
+```bash
+docker build -t chemready .
+docker run -p 7860:7860 -e CHEMREADY_DEMO=true -e CHEMREADY_LLM_PROVIDER=rules \
+  -e CHEMREADY_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" chemready
+```
+
+Public demo on Hugging Face Spaces: see [docs/deploy.md](docs/deploy.md).
+
+### With a real model
+
+Copy `.env.example` to `.env`, then either:
+
+- **Ollama (local, private files allowed):** install Ollama, `ollama pull <model>`, set
+  `CHEMREADY_LLM_PROVIDER=ollama` and `CHEMREADY_OLLAMA_MODEL=<model>`.
+- **Gemini (public SDS only on the free tier):** set `CHEMREADY_LLM_PROVIDER=gemini`,
+  `CHEMREADY_GEMINI_API_KEY` and `CHEMREADY_GEMINI_MODEL` (pick a current free-tier model
+  from Google's pricing page).
+
+## Development
 
 | Task | Command |
 | --- | --- |
-| Run the tests with coverage | `uv run pytest --cov` |
-| Lint | `uv run ruff check` (add `--fix` to fix safe issues) |
-| Format | `uv run ruff format` |
-| Type check | `uv run mypy` |
+| Tests with coverage (≥ 90% required) | `uv run pytest --cov` |
+| Lint and format | `uv run ruff check` · `uv run ruff format` |
+| Type check (strict) | `uv run mypy` |
+| Pipeline eval on fictional files | see [evals/README.md](evals/README.md) |
 
-GitHub Actions runs all four on every push and pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Coverage below 90% fails the build.
+CI runs lint, format, types, tests, the eval gate and a Docker build on every push.
 
-### Configuration and privacy
+## Documentation
 
-All settings come from environment variables with the prefix `CHEMREADY_`, or from a local `.env` file. See [`.env.example`](.env.example).
-
-- The default model provider is **Ollama**, which runs locally, so private factory files stay on your machine.
-- **Gemini** needs `CHEMREADY_GEMINI_API_KEY` and `CHEMREADY_GEMINI_MODEL`. While `CHEMREADY_GEMINI_FREE_TIER=true`, ChemReady treats Gemini as **public SDS files only**, because Google's free tier may use submitted content to improve its products.
-- Secrets are stored as `SecretStr` and never printed. `data/private/` and `.env` are git ignored.
-
-### Project layout
-
-```
-src/chemready/   application code (config and command line today)
-tests/           pytest tests
-docs/design/     product design documents
-prototype/       clickable HTML prototype
-```
-
-## Planned stack
-
-Python, FastAPI, Pydantic, PyMuPDF, SQLite, Gemini API (public files only) or a local model via Ollama (private files), sentence-transformers for search, GitHub Actions for CI.
-
-## How quality will be measured
-
-| Metric | Target |
+| Topic | Link |
 | --- | --- |
-| Critical field accuracy | 95% or higher |
-| Invented values on critical fields | 0 |
-| Saved values traced to a source quote | 100% |
-| Time to prepare a monthly inventory | 70% less than today |
-
-Results will be measured on a hand labelled gold set of 30 safety data sheets and published in `evals/results.md`.
+| Product requirements (PRD) | Private document; summary above |
+| Design: flows, screens, design system, prototype, usability test | [docs/design/](docs/design/), [prototype/](prototype/) |
+| Collecting and labelling SDS files | [docs/data/](docs/data/) |
+| Extraction, backend, frontend, observability | [docs/engineering/](docs/engineering/) |
+| Deploy | [docs/deploy.md](docs/deploy.md) |
+| Why it is built this way | [DECISIONS.md](DECISIONS.md) |
+| Demo recording script | [docs/demo-gif-script.md](docs/demo-gif-script.md) |
 
 ## Roadmap
 
-- [x] Product design: user flow, screen specs, design system and clickable prototype
-- [x] Code foundation: project setup, typed config with a privacy rule, lint, type checks, tests and CI
+- [x] Product design: user flow, screen specs, design system, clickable prototype, usability test plan
+- [x] Code foundation: uv, typed config with a privacy rule, lint, strict types, tests, CI
+- [x] Eval tooling: gold format, labelling guide, gold checker, run_evals with calibration and review rate
+- [x] PDF parsing, scan detection and GHS section splitting
+- [x] Extraction engine: one model interface, Ollama, Gemini, rules baseline, injection defence
+- [x] Validation: grounding, page, section, CAS, H code and date checks, review flags
+- [x] Backend, review screen, inventory, action flags and Excel export
+- [x] Tracing, cost tracking, JSON logs, CI eval gate, Docker
 - [ ] Customer discovery: 10 interviews with chemical and compliance managers
-- [ ] Gold set of 30 labelled safety data sheets and an eval script
-- [ ] PDF parsing and section splitting
-- [ ] Extraction engine with validation
-- [ ] Backend, review screen, inventory and Excel export
-- [ ] Pilot with 2 facilities
-- [ ] Public demo
+- [ ] Gold set of 30 labelled public SDS files, then v1, v2, v3 eval results
+- [ ] OCR for scanned SDS files, the pilot's CIL template, email for password resets
+- [ ] Pilot with 2 facilities (private deployment with Ollama)
 
 ## Are you a chemical or compliance manager?
 
-I would like to learn how you prepare your chemical inventory today. Reach me on [LinkedIn](https://www.linkedin.com/in/alqurayishsharkar/) or at alqurayish@gmail.com.
+I would like to learn how you prepare your chemical inventory today. Reach me on
+[LinkedIn](https://www.linkedin.com/in/alqurayishsharkar/) or at alqurayish@gmail.com.
 
 ## Author
 
-**Md. Alqurayish Sharkar**, AI Product Engineer and Founder of [D-SAi](https://d-sai.com). ChemReady is a D-SAi product.
+**Md. Alqurayish Sharkar**, AI Product Engineer and Founder of [D-SAi](https://d-sai.com).
+ChemReady is a D-SAi product.
 
 ## Sources
 
