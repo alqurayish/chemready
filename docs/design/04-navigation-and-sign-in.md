@@ -86,3 +86,31 @@ Invite only is simpler and safer for the first 2 pilots; open sign up can follow
   top bar and behind dialogs.
 - Demo account `demo@chemready.app` / `demo1234`, one click from the website and
   the sign in box. `#demo` in the address opens the signed in app.
+
+## Refinement 3: top navigation, profile and branding
+
+**The left sidebar is removed.** The app uses one horizontal glass top bar:
+
+```
+[◇ ChemReady  Prototype]  Upload  Review 2  Inventory  Actions 8  Settings      ● Local model  (RA) Rahima Akter ▾
+```
+
+| Width | Navigation |
+|---|---|
+| 1024 px and wider | Icons and labels, user name on the right |
+| 768 to 1023 px | Labels only, avatar only |
+| 767 px and narrower | Menu button opens a list of all pages, profile and sign out |
+
+- Active page: white raised pill with primary text. Amber counts mean work is waiting.
+- Profile menu (avatar, right): name and email, Profile, Settings, Sign out.
+- New **Profile** page (needs an account): name and role, workspace, change
+  password, sign out of all devices, sign out.
+
+**Branding**, each shown once in the right place:
+
+| Where | Text |
+|---|---|
+| Logo tag (website and app) | ChemReady · Prototype |
+| Website hero label | A D-SAi Product |
+| Website About section | Designed and built by Md. Alqurayish Sharkar, AI Product Engineer |
+| Footers and profile menu | ChemReady Prototype · A D-SAi Product · © 2026 D-SAi |

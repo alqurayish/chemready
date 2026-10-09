@@ -123,13 +123,14 @@ Use only these values.
 | Table row height | 40 px |
 | Table cell side padding | 12 px |
 
-**Radius:** 4 px (badges), 8 px (buttons, inputs, nav items), 12 px (cards),
-14 px (dialogs), full (status pills).
+**Radius:** 4 px (badges), 8 px (buttons, inputs, nav items), 14 px (cards,
+dialogs), full (status pills).
 **Shadows:** cards use a hairline shadow; menus, dialogs and toasts use the
 larger one.
-**Layout:** desktop sidebar 232 px (1024 px and wider), tablet icon rail
-76 px (641 to 1023 px), phone bottom tab bar (640 px and narrower).
-See `04-navigation-and-sign-in.md`.
+**Layout:** horizontal glass top navigation 56 px high, no sidebar; content up
+to 1280 px wide. See `04-navigation-and-sign-in.md`.
+**Glass:** top bar, cards, dialogs and the website only. Text always sits on
+72% or more white. Menus inside the top bar are solid white.
 
 ## Components (P0 set)
 

@@ -10,7 +10,6 @@
   --color-page: #F8FAFC;
   --color-surface: #FFFFFF;
   --color-surface-subtle: #F1F5F9;
-  --color-sidebar: #F3F5F8;
   --color-text: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #64748B;
@@ -87,9 +86,21 @@
   --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08); /* dialogs, menus, toasts */
 
   /* Layout */
-  --sidebar-width: 232px;
-  --rail-width: 76px;     /* tablet icon rail */
-  --tabbar-height: 60px;  /* phone bottom tab bar */
+  --topnav-height: 56px;  /* horizontal top navigation, no sidebar */
+  --content-max: 1280px;  /* page content width */
+
+  /* Glass: used on the top bar, cards, dialogs and the website. Text always sits
+     on 72% or more white, so contrast stays the same as on solid white. */
+  --glass-nav: rgba(255, 255, 255, 0.72);
+  --glass-card: rgba(255, 255, 255, 0.80);
+  --glass-menu: #FFFFFF;  /* menus inside the top bar must be solid */
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-edge: rgba(15, 23, 42, 0.08);
+  --glass-blur: saturate(180%) blur(18px);
+  --glass-card-blur: saturate(160%) blur(14px);
+  --wash-1: #DBEAFE;      /* soft background wash behind glass */
+  --wash-2: #E0E7FF;
+  --wash-3: #ECFDF5;
   --row-height: 40px;
   --min-app-width: 1280px;
 }

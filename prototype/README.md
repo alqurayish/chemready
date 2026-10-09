@@ -34,7 +34,7 @@ Show this only **after** the discovery questions (PRD: never pitch during the in
 6. **Inventory** → **Export CIL**: warnings and the sheet preview.
 7. **Upload documents**: the sign in modal appears. Sign in with any email and an 8+ character
    password; you land straight on the upload screen. **Try a sample batch**, then watch **Review** process it.
-8. Account menu (bottom left) → **Sign out** returns to the landing page.
+8. Profile menu (top right) → **Profile** or **Sign out** (returns to the website).
 
 Use **Reset demo** (top right) between interviews.
 
