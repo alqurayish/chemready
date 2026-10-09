@@ -42,8 +42,16 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     database_path: Path = Path("data/private/chemready.sqlite")
 
-    # Business rule R6: flag SDS files older than this many years.
+    upload_dir: Path = Path("data/private/uploads")
+    max_upload_mb: int = Field(default=20, ge=1, le=100)
+    max_batch_files: int = Field(default=50, ge=1, le=200)
+
+    # Business rule R6: default for new facilities: flag SDS files older than this many years.
     sds_max_age_years: int = Field(default=3, ge=1, le=10)
+
+    # Signs session cookies. Required in production; in development a random key is
+    # made at start-up, so everyone is signed out when the server restarts.
+    secret_key: SecretStr | None = None
 
     @model_validator(mode="after")
     def _check_provider_settings(self) -> "Settings":
@@ -59,6 +67,10 @@ class Settings(BaseSettings):
             ]
             if missing:
                 raise ValueError(f"llm_provider is 'gemini' but these are not set: {', '.join(missing)}")
+        if self.environment == "production" and (
+            self.secret_key is None or len(self.secret_key.get_secret_value()) < 32
+        ):
+            raise ValueError("CHEMREADY_SECRET_KEY must be set to at least 32 characters in production")
         return self
 
     @property
