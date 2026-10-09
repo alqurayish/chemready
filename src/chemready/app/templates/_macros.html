@@ -1,0 +1,47 @@
+{% macro icon(name) -%}
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+{%- if name == 'upload' %}<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+{%- elif name == 'review' %}<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/>
+{%- elif name == 'inventory' %}<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9 9.5v10"/>
+{%- elif name == 'action' %}<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>
+{%- elif name == 'settings' %}<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>
+{%- elif name == 'user' %}<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>
+{%- elif name == 'logout' %}<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/>
+{%- elif name == 'lock' %}<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>
+{%- elif name == 'chevron' %}<path d="m15 18-6-6 6-6"/>
+{%- elif name == 'menu' %}<path d="M4 7h16M4 12h16M4 17h16"/>
+{%- elif name == 'shield' %}<path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/>
+{%- elif name == 'quote' %}<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>
+{%- elif name == 'scale' %}<path d="M12 4v16M6 20h12"/><path d="M5 8h14"/><path d="m5 8-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/>
+{%- endif %}</svg>
+{%- endmacro %}
+
+{% macro pill(kind, label) -%}
+<span class="pill pill-{{ kind }}"><span class="i" aria-hidden="true">{{ {'verified':'✓','review':'!','missing':'○','passed':'•'}[kind] }}</span>{{ label }}</span>
+{%- endmacro %}
+
+{% macro signal(word) -%}
+{% if word %}<span class="signal {{ 'signal-danger' if word == 'Danger' }}">{{ word|upper }}</span>{% else %}<span class="muted">—</span>{% endif %}
+{%- endmacro %}
+
+{% macro picto(code) -%}
+<span class="picto" title="{{ code }} {{ PICTOGRAMS.get(code, '') }}"><span class="picto-diamond" aria-hidden="true"><span>{{ code[3:] }}</span></span>{{ code }}</span>
+{%- endmacro %}
+
+{% macro field_status(f) -%}
+{% if f.resolution == 'approved' %}{{ pill('passed', 'Approved') }}
+{% elif f.resolution == 'edited' %}{{ pill('passed', 'Edited') }}
+{% elif f.resolution == 'missing' or f.status == 'missing' %}{{ pill('missing', 'Missing') }}
+{% elif f.status == 'needs_review' %}{{ pill('review', 'Needs review') }}
+{% else %}{{ pill('passed', 'Passed checks') }}{% endif %}
+{%- endmacro %}
+
+{% macro field_value(f) -%}
+{% if f.value is none or f.resolution == 'missing' %}<span class="muted">—</span>
+{% elif f.field_name == 'revision_date' %}{{ f.value|nice_date }}
+{% elif f.field_name.startswith('hazard_statements') %}<span class="code">{{ f.value }}</span> {{ f.extra.get('statement') or '' }}
+{% elif f.field_name.startswith('ingredients') %}<span class="code">{{ f.value }}</span>
+{% elif f.field_name.startswith('pictograms') %}{{ picto(f.value) }}
+{% elif f.field_name == 'signal_word' %}{{ signal(f.value) }}
+{% else %}{{ f.value }}{% endif %}
+{%- endmacro %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% set pages = [('upload','/app/upload','Upload','upload',0), ('review','/app/review','Review','review',nav.review), ('inventory','/app/inventory','Inventory','inventory',0), ('action','/app/actions','Actions','action',nav.actions), ('settings','/app/settings','Settings','settings',0)] %}
+{% block body %}
+<div class="app">
+  <header class="topnav">
+    <div class="topnav-shell">
+      <div class="topnav-inner">
+        <a class="brand" href="/app/inventory" style="color:inherit;text-decoration:none"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">ChemReady</span><span class="brand-tag">Prototype</span></a>
+        <nav class="nav" aria-label="Main">
+          {% for key, href, label, ic, count in pages %}
+          <a href="{{ href }}" {% if active == key %}aria-current="page"{% endif %}>{{ icon(ic) }}<span>{{ label }}</span>{% if count %}<span class="count count-review">{{ count }}</span>{% endif %}</a>
+          {% endfor %}
+        </nav>
+        <div class="topnav-right">
+          <span class="mode-chip" title="Model provider: {{ settings.llm_provider }}"><i class="dot"></i>{{ 'Local model' if settings.llm_provider != 'gemini' else ('Gemini · public only' if settings.gemini_free_tier else 'Gemini') }}</span>
+          <details class="profile">
+            <summary class="profile-btn" aria-label="Account menu"><span class="avatar" aria-hidden="true">{{ user.name|initials }}</span><span class="name">{{ user.name }}</span>{{ icon('chevron') }}</summary>
+            <div class="menu" role="menu">
+              <div class="menu-head"><span class="avatar">{{ user.name|initials }}</span><div class="account-meta"><strong>{{ user.name }}</strong><span>{{ user.email }}</span></div></div>
+              <a role="menuitem" href="/app/profile">{{ icon('user') }}Profile</a>
+              <a role="menuitem" href="/app/settings">{{ icon('settings') }}Settings</a>
+              <hr>
+              <form method="post" action="/signout"><button role="menuitem" type="submit">{{ icon('logout') }}Sign out</button></form>
+              <div class="menu-foot">ChemReady Prototype · A D-SAi Product</div>
+            </div>
+          </details>
+          <details class="mobile">
+            <summary class="menu-toggle" aria-label="Menu" style="display:grid">{{ icon('menu') }}</summary>
+            <div class="mobile-menu">
+              {% for key, href, label, ic, count in pages %}
+              <a href="{{ href }}" {% if active == key %}aria-current="page"{% endif %}>{{ icon(ic) }}{{ label }}{% if count %}<span class="count count-review">{{ count }}</span>{% endif %}</a>
+              {% endfor %}
+              <hr><a href="/app/profile">{{ icon('user') }}Profile · {{ user.name }}</a>
+              <form method="post" action="/signout"><button type="submit">{{ icon('logout') }}Sign out</button></form>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="main" id="main">{% block content %}{% endblock %}</main>
+  <footer class="app-foot"><span>ChemReady Prototype · A D-SAi Product</span><span>© 2026 D-SAi</span></footer>
+</div>
+{% endblock %}

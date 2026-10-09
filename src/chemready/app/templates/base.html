@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ChemReady{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% block body %}{% endblock %}
+{% if messages %}
+<div class="toasts" aria-live="polite">
+  {% for m in messages %}<div class="toast {{ 'toast-error' if m.kind == 'error' }}">{{ m.message }}</div>{% endfor %}
+</div>
+<script>setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 6000)</script>
+{% endif %}
+</body>
+</html>

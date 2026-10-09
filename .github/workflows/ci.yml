@@ -1,0 +1,103 @@
+# Runs the same checks a developer runs locally, on every push and pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, type check and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python and dependencies from the lock file
+        run: uv sync --locked
+
+      - name: Lint (ruff)
+        run: uv run ruff check --output-format=github
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check
+
+      - name: Type check (mypy)
+        run: uv run mypy
+
+      - name: Tests with coverage (pytest)
+        run: uv run pytest --cov --cov-report=term-missing
+
+  evals:
+    name: Eval gate
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # True only when the repository owner has added the secret (never on forks).
+      HAS_GEMINI_KEY: ${{ secrets.CHEMREADY_GEMINI_API_KEY != '' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python and dependencies from the lock file
+        run: uv sync --locked
+
+      - name: Pipeline gate on the fictional set (rules baseline, no AI, no secrets)
+        env:
+          CHEMREADY_LLM_PROVIDER: rules
+        run: |
+          uv run python -m chemready.demo.synthetic_set evals/synthetic
+          uv run python -m chemready.evals.check_gold evals/synthetic/gold evals/synthetic/pdfs
+          uv run python -m chemready.evals.run_extraction --gold evals/synthetic/gold --pdfs evals/synthetic/pdfs --out evals/runs/ci-synthetic
+          uv run python -m chemready.evals.run_evals --gold evals/synthetic/gold --pdfs evals/synthetic/pdfs \
+            --predictions evals/runs/ci-synthetic --gate --baseline evals/baselines/synthetic-rules.json
+
+      - name: Model gate on 5 real gold files (runs once the gold set and the Gemini secret exist)
+        if: env.HAS_GEMINI_KEY == 'true' && hashFiles('evals/gold/*.json') != '' && hashFiles('evals/baselines/real.json') != ''
+        env:
+          CHEMREADY_LLM_PROVIDER: gemini
+          CHEMREADY_GEMINI_API_KEY: ${{ secrets.CHEMREADY_GEMINI_API_KEY }}
+          CHEMREADY_GEMINI_MODEL: ${{ vars.CHEMREADY_GEMINI_MODEL }}
+        run: |
+          uv run python -m chemready.evals.fetch_pdfs evals/gold evals/pdfs
+          uv run python -m chemready.evals.run_extraction --gold evals/gold --pdfs evals/pdfs --out evals/runs/ci --limit 5
+          uv run python -m chemready.evals.run_evals --gold evals/gold --pdfs evals/pdfs --predictions evals/runs/ci \
+            --limit 5 --gate --baseline evals/baselines/real.json --details
+
+  docker:
+    name: Docker image builds
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build the image (not pushed anywhere)
+        run: docker build -t chemready:ci .
+
+      - name: Start it and check the health endpoint
+        run: |
+          docker run -d --name app -p 7860:7860 -e CHEMREADY_LLM_PROVIDER=rules -e CHEMREADY_DEMO=true \
+            -e CHEMREADY_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" chemready:ci
+          for i in $(seq 1 30); do curl -fsS localhost:7860/healthz && exit 0; sleep 2; done
+          docker logs app; exit 1

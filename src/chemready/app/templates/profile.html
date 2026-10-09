@@ -1,0 +1,32 @@
+{% extends "app_base.html" %}
+{% block title %}Profile · ChemReady{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Profile</h1><p>Your account and how you sign in.</p></div></div>
+<div class="profile-grid">
+  <div class="card">
+    <div class="profile-card-head"><span class="avatar avatar-lg" aria-hidden="true">{{ user.name|initials }}</span>
+      <div class="account-meta"><strong style="font-size:var(--text-md)">{{ user.name }}</strong><span>{{ user.email }}</span></div></div>
+    <form class="form" method="post" action="/app/profile" style="padding:var(--space-5);gap:var(--space-4)">
+      <div><label class="field-label" for="p-name">Full name</label><input class="input" style="width:100%" id="p-name" name="name" required value="{{ user.name }}"><div class="help">Shown on every value you approve, for your auditor.</div></div>
+      <div><label class="field-label" for="p-role">Role</label><input class="input" style="width:100%" id="p-role" name="role" value="{{ user.role }}"></div>
+      <div><button class="btn btn-primary" type="submit">Save profile</button></div>
+    </form>
+  </div>
+  <div style="display:grid;gap:var(--space-4)">
+    <div class="card"><h2 class="section-title">Workspace</h2>
+      <dl class="kv"><dt>Facility</dt><dd>{{ facility.name }}{% if facility.location %}, {{ facility.location }}{% endif %}</dd>
+        <dt>Processing</dt><dd>{{ settings.llm_provider|capitalize }}{% if not settings.allows_private_data %} (public SDS only){% endif %}</dd>
+        <dt>Your approvals</dt><dd class="num">{{ approvals }} products</dd></dl></div>
+    <div class="card"><h2 class="section-title">Security</h2>
+      <div class="setting-row"><div><h3>Password</h3><p>Use a long phrase you do not use anywhere else.</p></div>
+        <details class="edit"><summary class="btn btn-secondary btn-sm">Change password</summary>
+          <form method="post" action="/app/profile/password"><input class="input" type="password" name="current" placeholder="Current password" autocomplete="current-password" required>
+            <input class="input" type="password" name="new" placeholder="New password (8+ characters)" autocomplete="new-password" minlength="8" required><button class="btn btn-primary btn-sm">Update</button></form></details></div>
+      <div class="setting-row"><div><h3>Sessions</h3><p>This browser · active now</p></div>
+        <form method="post" action="/app/profile/signout-all"><button class="btn btn-secondary btn-sm">Sign out of all devices</button></form></div>
+      <div class="setting-row"><div><h3>Sign out</h3><p>End your session on this browser.</p></div>
+        <form method="post" action="/signout"><button class="btn btn-danger btn-sm">Sign out</button></form></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

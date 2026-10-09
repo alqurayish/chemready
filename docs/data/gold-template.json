@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "sds_id": "sds-001",
+  "file": "sds-001.pdf",
+  "synthetic": false,
+  "source": {
+    "url": "https://example.com/where-you-downloaded-it.pdf",
+    "publisher": "Company that published the SDS",
+    "downloaded_at": "2026-10-09",
+    "licence_note": "Public download from the publisher's SDS page; PDF not redistributed."
+  },
+  "is_scanned": false,
+  "language": "en",
+  "labelled_by": "Your name",
+  "labelled_at": "2026-10-09",
+  "notes": "",
+  "expected": {
+    "product_name": {"value": null, "page": null, "quote": null},
+    "supplier": {"value": null, "page": null, "quote": null},
+    "revision_date": {"value": null, "page": null, "quote": null},
+    "signal_word": {"value": null, "page": null, "quote": null},
+    "hazard_statements": [
+      {"code": "H000", "statement": null, "page": null, "quote": null}
+    ],
+    "pictograms": [
+      {"code": "GHS00", "page": null, "quote": null}
+    ],
+    "ingredients": [
+      {"name": null, "cas_number": null, "percent": null, "page": null, "quote": null}
+    ],
+    "ppe": {"value": null, "page": null, "quote": null},
+    "storage": {"value": null, "page": null, "quote": null}
+  }
+}

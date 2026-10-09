@@ -1,0 +1,36 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import pill, signal, picto %}
+{% block title %}Inventory · ChemReady{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Inventory</h1><p>Every approved chemical product in your facility. <span class="num">{{ total }}</span> products.</p></div>
+  <a class="btn btn-primary" href="/api/export.xlsx">Export CIL</a></div>
+{% if not total %}
+<div class="card"><div class="empty"><h2>Your inventory is empty</h2><p>Approve reviewed SDS files and they will appear here.</p><a class="btn btn-primary" href="/app/review">Go to review</a></div></div>
+{% else %}
+<form class="toolbar" method="get">
+  <label class="sr-only" for="q">Search</label>
+  <input class="input input-search" id="q" name="q" type="search" placeholder="Search name, supplier, CAS, H code" value="{{ filters.q }}">
+  <select class="select" name="supplier" aria-label="Supplier"><option value="">All suppliers</option>{% for s in suppliers %}<option {{ 'selected' if filters.supplier == s }}>{{ s }}</option>{% endfor %}</select>
+  <select class="select" name="hazard" aria-label="Hazard"><option value="">All hazards</option>{% for h in hazards %}<option {{ 'selected' if filters.hazard == h }}>{{ h }}</option>{% endfor %}</select>
+  <select class="select" name="status" aria-label="Status"><option value="">All statuses</option><option value="verified" {{ 'selected' if filters.status == 'verified' }}>Verified</option><option value="action" {{ 'selected' if filters.status == 'action' }}>Needs action</option></select>
+  <button class="btn btn-secondary" type="submit">Filter</button>
+  {% if filters.q or filters.supplier or filters.hazard or filters.status %}<a class="btn-link" href="/app/inventory">Clear filters</a>{% endif %}
+</form>
+<p class="small muted" style="margin:0 0 var(--space-2)">Showing <span class="num">{{ rows|length }}</span> of <span class="num">{{ total }}</span> products</p>
+<div class="card">
+{% if rows %}
+<div class="table-wrap"><table class="data">
+  <thead><tr><th>Product</th><th>Supplier</th><th>Signal word</th><th>H codes</th><th>Pictograms</th><th>SDS date</th><th>Status</th></tr></thead>
+  <tbody>{% for p in rows %}<tr class="clickable" onclick="location.href='/app/products/{{ p.id }}'">
+    <td><a href="/app/products/{{ p.id }}" style="color:inherit;font-weight:500;text-decoration:none">{{ p.product_name }}</a></td>
+    <td>{{ p.supplier or '—' }}</td><td>{{ signal(p.signal_word) }}</td>
+    <td class="code nowrap">{% if p.h_codes %}{{ p.h_codes|map(attribute='h_code')|join(' ') }}{% else %}<span class="muted" style="font-family:var(--font-sans)">None listed</span>{% endif %}</td>
+    <td class="nowrap">{% for c in p.pictograms %}{{ picto(c) }}{% else %}<span class="muted">—</span>{% endfor %}</td>
+    <td class="nowrap num">{{ p.revision_date|nice_date }}</td>
+    <td>{% if p.document_status != 'approved' %}{{ pill('review','Needs review') }}{% elif p.id in first_flag %}{{ pill('review','Needs action: ' ~ first_flag[p.id]) }}{% else %}{{ pill('verified','Verified') }}{% endif %}</td>
+  </tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty"><p>No products match your search.</p><a class="btn btn-secondary" href="/app/inventory">Clear filters to see all {{ total }} products</a></div>{% endif %}
+</div>
+{% endif %}
+<p class="footer-note">ChemReady checks that your data matches your SDS files. It does not decide MRSL conformance. Use the ZDHC Gateway and your solution provider for that.</p>
+{% endblock %}

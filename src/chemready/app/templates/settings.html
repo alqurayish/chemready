@@ -1,0 +1,19 @@
+{% extends "app_base.html" %}
+{% block title %}Settings · ChemReady{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Settings</h1><p>Set your facility rules once.</p></div></div>
+<div class="card card-pad"><form class="form" method="post" action="/app/settings">
+  <div><label class="field-label" for="name">Facility name</label><input class="input" style="width:100%" id="name" name="name" required value="{{ facility.name }}"><div class="help">Shown on exports.</div></div>
+  <div><label class="field-label" for="location">Location</label><input class="input" style="width:100%" id="location" name="location" value="{{ facility.location }}"><div class="help">For example Gazipur.</div></div>
+  <div><label class="field-label" for="solution_provider">Solution provider</label><input class="input" style="width:100%" id="solution_provider" name="solution_provider" value="{{ facility.solution_provider }}"><div class="help">The tool you upload your CIL to.</div></div>
+  <div><label class="field-label" for="age">SDS maximum age (years)</label><input class="input" id="age" name="sds_max_age_years" type="number" min="1" max="10" value="{{ facility.sds_max_age_years }}" style="width:120px">
+    <div class="help">SDS files older than this are flagged as too old.</div>{% if error %}<div class="error-text">{{ error }}</div>{% endif %}</div>
+  <div><span class="field-label">Processing mode</span><div class="readonly"><strong>{{ settings.llm_provider|capitalize }}.</strong> Set by your administrator in the server settings. Private factory files are never sent to a free AI service.</div></div>
+  <div><button class="btn btn-primary" type="submit">Save settings</button></div>
+</form></div>
+<div class="card" style="margin-top:var(--space-4)"><h2 class="section-title">AI usage this month</h2>
+  <dl class="kv"><dt>Model calls</dt><dd class="num">{{ usage.calls }}{% if usage.failed %} ({{ usage.failed }} failed){% endif %}</dd>
+    <dt>Tokens in / out</dt><dd class="num">{{ usage.input_tokens }} / {{ usage.output_tokens }}</dd>
+    <dt>Average time per call</dt><dd class="num">{{ (usage.mean_latency_ms / 1000)|round(1) }} s</dd>
+    <dt>Cost</dt><dd class="num">${{ '%.4f'|format(usage.cost_usd) }}{% if not settings.price_input_per_million and not settings.price_output_per_million %} <span class="muted">(prices set to 0: local model or free tier)</span>{% endif %}</dd></dl></div>
+{% endblock %}
