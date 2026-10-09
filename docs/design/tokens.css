@@ -12,7 +12,7 @@
   --color-surface-subtle: #F1F5F9;
   --color-text: #0F172A;
   --color-text-secondary: #475569;
-  --color-text-muted: #64748B;
+  --color-text-muted: #58677D;
   --color-border: #E2E8F0;        /* dividers and card edges (decorative) */
   --color-border-input: #8391A7;  /* form fields: 3.19:1 so the edge is visible */
 
@@ -86,18 +86,19 @@
   --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08); /* dialogs, menus, toasts */
 
   /* Layout */
-  --topnav-height: 56px;  /* horizontal top navigation, no sidebar */
+  --topnav-height: 52px;  /* floating pill navigation, no sidebar */
   --content-max: 1280px;  /* page content width */
 
-  /* Glass: used on the top bar, cards, dialogs and the website. Text always sits
-     on 72% or more white, so contrast stays the same as on solid white. */
+  /* Glass: every card, the navigation pill, dialogs and the website. Cards are 58%
+     white over a soft wash; all text still passes WCAG AA (checked by script). */
   --glass-nav: rgba(255, 255, 255, 0.72);
-  --glass-card: rgba(255, 255, 255, 0.80);
+  --glass-card: rgba(255, 255, 255, 0.58);
   --glass-menu: #FFFFFF;  /* menus inside the top bar must be solid */
   --glass-border: rgba(255, 255, 255, 0.75);
   --glass-edge: rgba(15, 23, 42, 0.08);
   --glass-blur: saturate(180%) blur(18px);
-  --glass-card-blur: saturate(160%) blur(14px);
+  --glass-card-blur: saturate(180%) blur(20px);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --wash-1: #DBEAFE;      /* soft background wash behind glass */
   --wash-2: #E0E7FF;
   --wash-3: #ECFDF5;

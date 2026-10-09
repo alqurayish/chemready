@@ -114,3 +114,11 @@ Invite only is simpler and safer for the first 2 pilots; open sign up can follow
 | Website hero label | A D-SAi Product |
 | Website About section | Designed and built by Md. Alqurayish Sharkar, AI Product Engineer |
 | Footers and profile menu | ChemReady Prototype · A D-SAi Product · © 2026 D-SAi |
+
+## Refinement 4: compact pill navigation and glass cards
+
+- The top bar is no longer full width. It is a compact floating glass pill,
+  centred, as wide as its content: logo, five pages, then the profile.
+- Every card is glass: 58% white, 20 px blur, a white top highlight and a soft
+  blue shadow, over a gentle colour wash.
+- Muted text darkened from #64748B to #58677D so it stays above 4.5:1 on glass.

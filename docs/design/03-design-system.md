@@ -31,7 +31,7 @@ looks and behaves the same.
 | `--color-surface-subtle` | #F1F5F9 | Table header, hover rows | — |
 | `--color-text` | #0F172A | Main text | 17.85:1 on white |
 | `--color-text-secondary` | #475569 | Labels, column headers | 7.58:1 |
-| `--color-text-muted` | #64748B | Help text, timestamps | 4.76:1 on white, 4.55:1 on page |
+| `--color-text-muted` | #58677D | Help text, timestamps | 5.75:1 on white, 5.17:1 on glass |
 | `--color-border` | #E2E8F0 | Dividers (decorative) | — |
 | `--color-border-input` | #8391A7 | Form fields, secondary buttons | 3.19:1 |
 | `--color-primary` | #1D4ED8 | Primary buttons, links, selected row | white text 6.70:1 |
@@ -127,10 +127,10 @@ Use only these values.
 dialogs), full (status pills).
 **Shadows:** cards use a hairline shadow; menus, dialogs and toasts use the
 larger one.
-**Layout:** horizontal glass top navigation 56 px high, no sidebar; content up
-to 1280 px wide. See `04-navigation-and-sign-in.md`.
-**Glass:** top bar, cards, dialogs and the website only. Text always sits on
-72% or more white. Menus inside the top bar are solid white.
+**Layout:** a compact floating glass navigation pill, 52 px high, centred; no
+sidebar; content up to 1280 px wide. See `04-navigation-and-sign-in.md`.
+**Glass:** every card (58% white, 20 px blur, white top highlight), the
+navigation pill, dialogs and the website. Menus inside the pill are solid white.
 
 ## Components (P0 set)
 
