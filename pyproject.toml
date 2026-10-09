@@ -1,0 +1,19 @@
+[project]
+name = "chemready"
+version = "0.1.0"
+description = "Turns chemical safety data sheets into a verified, audit ready chemical inventory."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Md. Alqurayish Sharkar" }]
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[project.scripts]
+chemready = "chemready.__main__:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/chemready"]
