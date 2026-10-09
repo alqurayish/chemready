@@ -94,8 +94,8 @@ connections, and it costs nothing.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
-| `--text-xl` | 24 px | 600 | Big numbers on empty states |
-| `--text-lg` | 20 px | 600 | Page title |
+| `--text-hero` | 40 px | 700 | Landing page title (28 px on phones) |
+| `--text-lg` | 22 px | 600 | Page title |
 | `--text-md` | 16 px | 600 | Section and card titles |
 | `--text-base` | 14 px | 400 / 500 | Body, buttons, form fields |
 | `--text-sm` | 13 px | 400 | Table cells, help text, status pills |
@@ -123,11 +123,13 @@ Use only these values.
 | Table row height | 40 px |
 | Table cell side padding | 12 px |
 
-**Radius:** 4 px (badges), 6 px (buttons, inputs), 10 px (cards, dialogs),
-full (status pills).
-**Shadows:** cards use a hairline shadow; only dialogs and toasts use the
+**Radius:** 4 px (badges), 8 px (buttons, inputs, nav items), 12 px (cards),
+14 px (dialogs), full (status pills).
+**Shadows:** cards use a hairline shadow; menus, dialogs and toasts use the
 larger one.
-**Layout:** sidebar 220 px; minimum app width 1280 px.
+**Layout:** desktop sidebar 232 px (1024 px and wider), tablet icon rail
+76 px (641 to 1023 px), phone bottom tab bar (640 px and narrower).
+See `04-navigation-and-sign-in.md`.
 
 ## Components (P0 set)
 
@@ -138,7 +140,7 @@ larger one.
 | Signal word badge | danger, warning | Hazard data, not status. |
 | Code text | CAS, H code | Monospace. |
 | Table | default, row hover, selected row | Sticky header; sortable columns show ▲▼. |
-| Tabs with counts | — | "Needs review 12". |
+| Segmented control with counts | — | "Needs review 12". macOS style: grey track, white selected segment. |
 | Search + filter dropdowns | — | "Clear filters" link when any filter is on. |
 | Drop zone | idle, dragging, uploading | Dashed border, blue when dragging. |
 | Progress bar | per file | Shows the stage name too, not only a bar. |

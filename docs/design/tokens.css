@@ -10,6 +10,7 @@
   --color-page: #F8FAFC;
   --color-surface: #FFFFFF;
   --color-surface-subtle: #F1F5F9;
+  --color-sidebar: #F3F5F8;
   --color-text: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #64748B;
@@ -55,8 +56,9 @@
   --text-sm: 13px;   /* table cells, help text */
   --text-base: 14px; /* body, form fields, buttons */
   --text-md: 16px;   /* section titles */
-  --text-lg: 20px;   /* page titles */
-  --text-xl: 24px;   /* counts on empty states */
+  --text-lg: 22px;   /* page titles */
+  --text-xl: 28px;   /* landing title on phones */
+  --text-hero: 40px; /* landing title */
 
   --weight-regular: 400;
   --weight-medium: 500;
@@ -73,16 +75,21 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 64px;
 
   /* Shape and depth */
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.12);
+  --radius-md: 8px;   /* buttons, inputs, nav items */
+  --radius-lg: 12px;  /* cards */
+  --radius-xl: 14px;  /* dialogs, product preview */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08); /* dialogs, menus, toasts */
 
   /* Layout */
-  --sidebar-width: 220px;
+  --sidebar-width: 232px;
+  --rail-width: 76px;     /* tablet icon rail */
+  --tabbar-height: 60px;  /* phone bottom tab bar */
   --row-height: 40px;
   --min-app-width: 1280px;
 }
