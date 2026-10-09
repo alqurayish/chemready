@@ -11,7 +11,8 @@ from typing import Literal
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-LlmProvider = Literal["ollama", "gemini"]
+# "rules" is an offline baseline with no AI: for demos and as an eval baseline only.
+LlmProvider = Literal["ollama", "gemini", "rules"]
 
 
 class Settings(BaseSettings):
