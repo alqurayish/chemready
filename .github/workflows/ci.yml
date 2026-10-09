@@ -1,0 +1,42 @@
+# Runs the same checks a developer runs locally, on every push and pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, type check and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python and dependencies from the lock file
+        run: uv sync --locked
+
+      - name: Lint (ruff)
+        run: uv run ruff check --output-format=github
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check
+
+      - name: Type check (mypy)
+        run: uv run mypy
+
+      - name: Tests with coverage (pytest)
+        run: uv run pytest --cov --cov-report=term-missing
