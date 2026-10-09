@@ -8,6 +8,7 @@ authors = [{ name = "Md. Alqurayish Sharkar" }]
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "pydantic-settings>=2.6",
+    "pymupdf>=1.25",
 ]
 
 [project.scripts]
@@ -47,6 +48,13 @@ python_version = "3.12"
 strict = true
 files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
+
+# PyMuPDF's type hints are incomplete. Treat it as untyped; our own wrappers in
+# chemready.pdf are fully typed, so the rest of the code stays strictly checked.
+[[tool.mypy.overrides]]
+module = ["pymupdf", "pymupdf.*"]
+follow_imports = "skip"
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
