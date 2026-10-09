@@ -1,0 +1,88 @@
+/*
+ * ChemReady design tokens (Phase 1, Step 3).
+ * The single source of truth for colours, type and spacing.
+ * The prototype (Step 4) and the real frontend (Phase 8) both import this file.
+ * Contrast ratios are listed in docs/design/03-design-system.md.
+ */
+
+:root {
+  /* Neutrals: page, surfaces, text, borders */
+  --color-page: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F1F5F9;
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;        /* dividers and card edges (decorative) */
+  --color-border-input: #8391A7;  /* form fields: 3.19:1 so the edge is visible */
+
+  /* Brand and actions: blue is ONLY for things you can click or select */
+  --color-primary: #1D4ED8;
+  --color-primary-hover: #1E40AF;
+  --color-primary-soft: #DBEAFE;
+  --color-focus: #2563EB;
+
+  /* Data status: reserved. Never use these colours for anything else. */
+  --color-verified-text: #166534;
+  --color-verified-bg: #DCFCE7;
+  --color-verified-icon: #16A34A;
+
+  --color-review-text: #92400E;
+  --color-review-bg: #FEF3C7;
+  --color-review-icon: #D97706;
+
+  --color-missing-text: #991B1B;
+  --color-missing-bg: #FEE2E2;
+  --color-missing-icon: #DC2626;
+
+  --color-passed-text: #334155;
+  --color-passed-bg: #F1F5F9;
+
+  /* Destructive buttons (Remove file). Same family as missing, darker. */
+  --color-danger: #B91C1C;
+
+  /* Source quote highlight in the PDF viewer. Blue = "the field you selected". */
+  --color-highlight-bg: #BFDBFE;
+  --color-highlight-border: #1D4ED8;
+
+  /* Typography: system fonts, nothing to download */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, "SFMono-Regular",
+    Menlo, "Liberation Mono", monospace;
+
+  --text-xs: 12px;   /* table meta, page numbers */
+  --text-sm: 13px;   /* table cells, help text */
+  --text-base: 14px; /* body, form fields, buttons */
+  --text-md: 16px;   /* section titles */
+  --text-lg: 20px;   /* page titles */
+  --text-xl: 24px;   /* counts on empty states */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  /* Spacing: 4 px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Shape and depth */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.12);
+
+  /* Layout */
+  --sidebar-width: 220px;
+  --row-height: 40px;
+  --min-app-width: 1280px;
+}
