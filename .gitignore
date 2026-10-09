@@ -29,3 +29,8 @@ data/private/
 .vscode/
 .idea/
 .DS_Store
+
+# Eval data: public SDS PDFs are not redistributed; runs and synthetic files are generated.
+evals/pdfs/
+evals/runs/
+evals/synthetic/
