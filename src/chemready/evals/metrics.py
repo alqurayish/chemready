@@ -12,8 +12,10 @@ import unicodedata
 from dataclasses import dataclass, field
 
 from chemready.evals.formats import GoldRecord, Prediction
+from chemready.pdf.parse import ParsedDocument
 from chemready.schema import SdsExtraction, Sourced
 from chemready.validation.grounding import appears_in, value_in_text
+from chemready.validation.validate import Status, validate_extraction
 
 SCALAR_FIELDS = ("product_name", "supplier", "revision_date")
 _TRAILING_PUNCTUATION = re.compile(r"[\s.,;:]+$")
@@ -58,6 +60,10 @@ class DocumentScore:
     hallucinated_values: int = 0
     errors: list[str] = field(default_factory=list)
     failed: bool = False
+    confident_values: int = 0
+    confident_correct: int = 0
+    checked_fields: int = 0
+    review_fields: int = 0
 
 
 def _scalar_correct(field_name: str, gold: Sourced, predicted: Sourced) -> bool:
@@ -71,8 +77,39 @@ def _is_hallucinated(value: str, quote: str | None, text: str, *, is_date: bool 
     return not appears_in(quote, text) and not value_in_text(value, text, is_date=is_date)
 
 
-def score_document(gold: GoldRecord, prediction: Prediction | None, pdf_text: str) -> DocumentScore:
-    """Score one SDS. pdf_text is the full text of the PDF, used to detect invented values."""
+def _add_calibration(
+    score: DocumentScore, gold: GoldRecord, predicted: SdsExtraction, document: ParsedDocument
+) -> None:
+    """Of the critical values validation marks as passed (confident), how many are right? PRD target 98%."""
+    expected = gold.expected
+    gold_sets = {
+        "hazard_statements": hazard_codes(expected),
+        "pictograms": pictogram_codes(expected),
+        "ingredients": cas_numbers(expected),
+    }
+    for check in validate_extraction(predicted, document):
+        score.checked_fields += 1
+        score.review_fields += check.status is Status.NEEDS_REVIEW
+        if check.status is not Status.PASSED:
+            continue
+        name = check.field_name
+        if name in SCALAR_FIELDS:
+            correct = _scalar_correct(name, getattr(expected, name), Sourced(value=check.value))
+        elif name.split("[")[0] in gold_sets:
+            correct = normalise_code(check.value) in gold_sets[name.split("[")[0]]
+        else:
+            continue  # signal word, PPE and storage are not critical fields
+        score.confident_values += 1
+        score.confident_correct += correct
+
+
+def score_document(
+    gold: GoldRecord, prediction: Prediction | None, pdf_text: str, document: ParsedDocument | None = None
+) -> DocumentScore:
+    """Score one SDS. pdf_text is the full text of the PDF, used to detect invented values.
+
+    Pass the parsed document as well to measure calibration and the review rate.
+    """
     score = DocumentScore(sds_id=gold.sds_id)
     expected = gold.expected
     code_sets = (
@@ -134,6 +171,8 @@ def score_document(gold: GoldRecord, prediction: Prediction | None, pdf_text: st
             if _is_hallucinated(code, quotes.get(code), pdf_text):
                 score.hallucinated_values += 1
                 score.errors.append(f"{label}: {code} is not in the PDF text")
+    if document is not None:
+        _add_calibration(score, gold, predicted, document)
     return score
 
 
@@ -144,6 +183,8 @@ class EvalSummary:
     field_accuracy: float
     code_recall: float
     hallucination_rate: float
+    calibration: float | None
+    review_rate: float | None
     mean_latency_ms: float
     p95_latency_ms: float
     input_tokens: int
@@ -176,6 +217,12 @@ def summarise(
         hallucination_rate=_ratio(
             sum(s.hallucinated_values for s in scores), sum(s.predicted_values for s in scores)
         ),
+        calibration=_ratio(sum(s.confident_correct for s in scores), confident)
+        if (confident := sum(s.confident_values for s in scores))
+        else None,
+        review_rate=_ratio(sum(s.review_fields for s in scores), checked)
+        if (checked := sum(s.checked_fields for s in scores))
+        else None,
         mean_latency_ms=statistics.fmean(latencies) if latencies else 0.0,
         p95_latency_ms=p95,
         input_tokens=input_tokens,

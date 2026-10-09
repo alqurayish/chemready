@@ -14,20 +14,20 @@ from pathlib import Path
 
 from chemready.evals.formats import load_gold, load_predictions
 from chemready.evals.metrics import DocumentScore, EvalSummary, score_document, summarise
-from chemready.pdf.parse import PdfError, parse_pdf
+from chemready.pdf.parse import ParsedDocument, PdfError, parse_pdf
 
 # Targets from the PRD. A run that misses any of them is reported as failing.
-TARGETS = {"field_accuracy": 0.95, "code_recall": 0.95, "hallucination_rate": 0.0}
+TARGETS = {"field_accuracy": 0.95, "code_recall": 0.95, "hallucination_rate": 0.0, "calibration": 0.98}
 
 
-def pdf_text(pdf_folder: Path, file_name: str) -> str:
+def load_pdf(pdf_folder: Path, file_name: str) -> ParsedDocument | None:
     path = pdf_folder / file_name
     if not path.exists():
         raise FileNotFoundError(f"PDF for gold record not found: {path}")
     try:
-        return parse_pdf(path).full_text
+        return parse_pdf(path)
     except PdfError:
-        return ""
+        return None
 
 
 def evaluate(
@@ -37,10 +37,11 @@ def evaluate(
     if not gold:
         raise SystemExit(f"No gold records found in {gold_folder}")
     predictions = load_predictions(predictions_folder)
-    scores = [
-        score_document(record, predictions.get(record.sds_id), pdf_text(pdf_folder, record.file))
-        for record in gold
-    ]
+    scores = []
+    for record in gold:
+        document = load_pdf(pdf_folder, record.file)
+        text = document.full_text if document else ""
+        scores.append(score_document(record, predictions.get(record.sds_id), text, document))
     used = [predictions[record.sds_id] for record in gold if record.sds_id in predictions]
     return summarise(scores, used, price), scores
 
@@ -50,7 +51,12 @@ def meets_targets(summary: EvalSummary) -> dict[str, bool]:
         "field_accuracy": summary.field_accuracy >= TARGETS["field_accuracy"],
         "code_recall": summary.code_recall >= TARGETS["code_recall"],
         "hallucination_rate": summary.hallucination_rate <= TARGETS["hallucination_rate"],
+        "calibration": summary.calibration is None or summary.calibration >= TARGETS["calibration"],
     }
+
+
+def _pct(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.1%}"
 
 
 def format_table(summary: EvalSummary) -> str:
@@ -60,6 +66,8 @@ def format_table(summary: EvalSummary) -> str:
         ("Critical field accuracy", f"{summary.field_accuracy:.1%}", ">= 95%", passed["field_accuracy"]),
         ("H code and CAS recall", f"{summary.code_recall:.1%}", ">= 95%", passed["code_recall"]),
         ("Hallucination rate", f"{summary.hallucination_rate:.1%}", "0%", passed["hallucination_rate"]),
+        ("Calibration (confident and correct)", _pct(summary.calibration), ">= 98%", passed["calibration"]),
+        ("Fields sent to review", _pct(summary.review_rate), "10% to 25%", None),
         ("Mean latency per SDS", f"{summary.mean_latency_ms / 1000:.1f} s", "< 30 s", None),
         ("p95 latency per SDS", f"{summary.p95_latency_ms / 1000:.1f} s", "", None),
         ("Tokens in / out", f"{summary.input_tokens} / {summary.output_tokens}", "", None),
