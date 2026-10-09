@@ -1,0 +1,31 @@
+# ChemReady clickable prototype (P0)
+
+One HTML file, no build step, no server. All data is fictional.
+
+## Open it
+
+Double click `index.html`, or run `python -m http.server 8000` in this folder and open
+http://localhost:8000.
+
+## Demo path for interviews (about 4 minutes)
+
+Show this only **after** the discovery questions (PRD: never pitch during the interview).
+
+1. **Inventory**: the end result. Point at the statuses: Verified vs Needs action.
+2. **Documents** → **Review** on *Demowet NF*: three doubtful fields come first.
+   - Revision date: the AI quoted text that is not in the PDF, so the value was removed.
+     Click **Edit** and enter 1 Mar 2025 from the page on the right.
+   - H code `H3l9`: a bad scan. **Edit** to `H319`.
+   - CAS `7732-18-6`: the check digit is wrong. Try saving it unchanged (it is refused), then `7732-18-5`.
+   - **Approve product**. The next SDS (*Isopropanol 99%*) has nothing flagged: look over it, then approve.
+3. **Inventory** → click a product: every value with page and quote.
+4. **Needs action**: old SDS, missing CAS, missing sections, unreadable files.
+5. **Settings**: change SDS maximum age to 2, then look at Needs action again.
+6. **Inventory** → **Export CIL**: warnings and the sheet preview.
+7. **Upload** → **Try a sample batch**, then watch **Documents** process it.
+
+Use **Reset demo** (top right) between interviews.
+
+## Keyboard on the review screen
+
+`A` approve · `E` edit · `M` not in SDS · `J` / `K` next / previous field

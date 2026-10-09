@@ -1,0 +1,1075 @@
+<title>ChemReady Prototype</title>
+<style>
+/* Layout: fixed sidebar + work area; review and record screens split fields | source page.
+   Tokens copied from docs/design/tokens.css (single light theme by design, see 03-design-system.md). */
+:root {
+  color-scheme: light;
+  --color-page: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F1F5F9;
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --color-border-input: #8391A7;
+  --color-primary: #1D4ED8;
+  --color-primary-hover: #1E40AF;
+  --color-primary-soft: #DBEAFE;
+  --color-focus: #2563EB;
+  --color-verified-text: #166534;
+  --color-verified-bg: #DCFCE7;
+  --color-verified-icon: #16A34A;
+  --color-review-text: #92400E;
+  --color-review-bg: #FEF3C7;
+  --color-review-icon: #D97706;
+  --color-missing-text: #991B1B;
+  --color-missing-bg: #FEE2E2;
+  --color-missing-icon: #DC2626;
+  --color-passed-text: #334155;
+  --color-passed-bg: #F1F5F9;
+  --color-danger: #B91C1C;
+  --color-highlight-bg: #BFDBFE;
+  --color-highlight-border: #1D4ED8;
+  --color-inverse: #FFFFFF;
+  --color-pdf-paper: #FFFFFF;
+  --color-pdf-desk: #E2E8F0;
+  --color-overlay: rgba(15, 23, 42, 0.45);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, "SFMono-Regular", Menlo, "Liberation Mono", monospace;
+  --text-xs: 12px; --text-sm: 13px; --text-base: 14px; --text-md: 16px; --text-lg: 20px; --text-xl: 24px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.12);
+  --sidebar-width: 220px;
+  --row-height: 40px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--color-page); color: var(--color-text);
+  font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5;
+}
+table, input, select, button, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+h1, h2, h3 { line-height: 1.25; margin: 0; text-wrap: balance; }
+a { color: var(--color-primary); }
+
+/* Prototype banner */
+.proto-banner {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; justify-content: space-between;
+  padding: var(--space-2) var(--space-4); background: var(--color-text); color: var(--color-inverse); font-size: var(--text-xs);
+}
+.proto-banner button { background: transparent; border: 1px solid currentColor; color: var(--color-inverse); border-radius: var(--radius-sm); padding: 2px var(--space-2); font-size: var(--text-xs); }
+
+/* Shell */
+.app { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: calc(100% - 34px); }
+.sidebar {
+  background: var(--color-surface); border-right: 1px solid var(--color-border);
+  display: flex; flex-direction: column; padding: var(--space-4) var(--space-3); gap: var(--space-4);
+}
+.brand { padding: 0 var(--space-2); }
+.brand-name { font-size: var(--text-md); font-weight: 600; display: flex; align-items: center; gap: var(--space-2); }
+.brand-mark { width: 18px; height: 18px; border: 2px solid var(--color-primary); transform: rotate(45deg); border-radius: 3px; flex: none; }
+.brand-facility { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav button {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);
+  width: 100%; text-align: left; background: none; border: 0; border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3); color: var(--color-text-secondary); font-weight: 500;
+}
+.nav button:hover { background: var(--color-surface-subtle); color: var(--color-text); }
+.nav button[aria-current="page"] { background: var(--color-primary-soft); color: var(--color-primary); }
+.count { font-size: var(--text-xs); font-weight: 600; padding: 0 7px; border-radius: 999px; background: var(--color-surface-subtle); color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+.count-review { background: var(--color-review-bg); color: var(--color-review-text); }
+.mode-badge { margin-top: auto; font-size: var(--text-xs); color: var(--color-text-secondary); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.mode-badge strong { color: var(--color-verified-text); }
+
+.main { padding: var(--space-6); min-width: 0; }
+.page-head { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-5); }
+.page-head h1 { font-size: var(--text-lg); font-weight: 600; }
+.page-head p { margin: 2px 0 0; color: var(--color-text-secondary); }
+.back { background: none; border: 0; color: var(--color-primary); padding: 0; font-weight: 500; margin-bottom: var(--space-2); }
+
+/* Generic pieces */
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.card-pad { padding: var(--space-5); }
+.btn { font-weight: 500; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); border: 1px solid transparent; min-height: 36px; white-space: nowrap; }
+.btn-sm { padding: 3px var(--space-3); min-height: 30px; font-size: var(--text-sm); }
+.btn-primary { background: var(--color-primary); color: var(--color-inverse); }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-secondary { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border-input); }
+.btn-secondary:hover { background: var(--color-surface-subtle); }
+.btn-danger { background: var(--color-surface); color: var(--color-danger); border-color: var(--color-danger); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-link { background: none; border: 0; color: var(--color-primary); font-weight: 500; padding: 0; }
+.row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.muted { color: var(--color-text-muted); }
+.small { font-size: var(--text-sm); }
+.xs { font-size: var(--text-xs); }
+.code { font-family: var(--font-mono); font-size: var(--text-sm); }
+.nowrap { white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.pill { display: inline-flex; align-items: center; gap: var(--space-1); padding: 1px var(--space-2); border-radius: 999px; font-size: var(--text-sm); font-weight: 500; white-space: nowrap; }
+.pill .i { font-weight: 700; }
+.pill-verified { background: var(--color-verified-bg); color: var(--color-verified-text); }
+.pill-review { background: var(--color-review-bg); color: var(--color-review-text); }
+.pill-missing { background: var(--color-missing-bg); color: var(--color-missing-text); }
+.pill-passed { background: var(--color-passed-bg); color: var(--color-passed-text); }
+
+.signal { display: inline-block; padding: 0 var(--space-2); border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.04em; border: 1px solid var(--color-border-input); }
+.signal-danger { background: var(--color-text); color: var(--color-inverse); border-color: var(--color-text); }
+.picto { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--color-text-secondary); margin-right: var(--space-2); white-space: nowrap; }
+.picto-diamond { width: 16px; height: 16px; transform: rotate(45deg); border: 2px solid var(--color-missing-icon); background: var(--color-surface); flex: none; display: grid; place-items: center; }
+.picto-diamond span { transform: rotate(-45deg); font-size: 7px; font-weight: 700; color: var(--color-text); }
+
+/* Tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-1); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4); }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: var(--space-2) var(--space-3); color: var(--color-text-secondary); font-weight: 500; display: inline-flex; gap: var(--space-2); align-items: center; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+table.data th { text-align: left; font-weight: 500; color: var(--color-text-secondary); background: var(--color-surface-subtle); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); white-space: nowrap; position: sticky; top: 0; }
+table.data td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); vertical-align: middle; height: var(--row-height); }
+table.data tbody tr:last-child td { border-bottom: 0; }
+table.data tr.clickable { cursor: pointer; }
+table.data tr.clickable:hover td { background: var(--color-surface-subtle); }
+table.data tr.selected td { background: var(--color-primary-soft); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-bottom: var(--space-4); }
+.select { max-width: 100%; }
+.input, .select { border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-surface); padding: 6px var(--space-3); min-height: 36px; }
+.input-search { flex: 1 1 260px; min-width: 0; }
+.field-label { display: block; font-weight: 500; margin-bottom: var(--space-1); }
+.help { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: var(--space-1); }
+.error-text { font-size: var(--text-sm); color: var(--color-missing-text); margin-top: var(--space-1); }
+
+/* Empty state */
+.empty { text-align: center; padding: var(--space-7) var(--space-5); }
+.empty h2 { font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-2); }
+.empty p { color: var(--color-text-secondary); margin: 0 0 var(--space-4); }
+
+/* Upload */
+.dropzone { border: 2px dashed var(--color-border-input); border-radius: var(--radius-lg); background: var(--color-surface); padding: var(--space-7) var(--space-5); text-align: center; }
+.dropzone.dragging { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.dropzone h2 { font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-1); }
+.notice { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-verified-bg); color: var(--color-verified-text); font-size: var(--text-sm); margin: var(--space-4) 0; }
+.notice-warn { background: var(--color-review-bg); color: var(--color-review-text); }
+.batch-list { list-style: none; margin: 0; padding: 0; }
+.batch-list li { display: flex; gap: var(--space-3); align-items: baseline; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-border); font-size: var(--text-sm); flex-wrap: wrap; }
+.batch-list li:last-child { border-bottom: 0; }
+.ok { color: var(--color-verified-icon); font-weight: 700; }
+.bad { color: var(--color-missing-icon); font-weight: 700; }
+
+/* Progress */
+.progress { display: flex; flex-direction: column; gap: 3px; min-width: 150px; }
+.bar { height: 6px; border-radius: 999px; background: var(--color-surface-subtle); overflow: hidden; }
+.bar > div { height: 100%; background: var(--color-primary); transition: width 300ms; }
+
+/* Split view (review + record) */
+.split-record { grid-template-columns: minmax(0, 58fr) minmax(0, 42fr) !important; }
+.split { display: grid; grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); gap: var(--space-4); align-items: start; }
+.fields { display: flex; flex-direction: column; gap: var(--space-4); }
+.group-title { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-secondary); padding: 0 var(--space-1) var(--space-1); display: flex; justify-content: space-between; align-items: center; }
+.field { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); cursor: pointer; border-left: 3px solid transparent; }
+.field:last-child { border-bottom: 0; }
+.field:hover { background: var(--color-surface-subtle); }
+.field.active { background: var(--color-primary-soft); border-left-color: var(--color-primary); }
+.field-top { display: flex; justify-content: space-between; gap: var(--space-2); align-items: baseline; flex-wrap: wrap; }
+.field-label-sm { font-size: var(--text-xs); color: var(--color-text-secondary); font-weight: 500; }
+.field-value { font-weight: 500; overflow-wrap: anywhere; }
+.reason { font-size: var(--text-sm); margin-top: 2px; }
+.reason-review { color: var(--color-review-text); }
+.reason-missing { color: var(--color-missing-text); }
+.field-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.resolved { font-size: var(--text-sm); color: var(--color-verified-text); margin-top: 2px; }
+
+.viewer { position: sticky; top: var(--space-4); }
+.viewer-bar { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-size: var(--text-sm); flex-wrap: wrap; }
+.desk { background: var(--color-pdf-desk); padding: var(--space-4); border-radius: 0 0 var(--radius-lg) var(--radius-lg); max-height: 70vh; overflow: auto; }
+.paper { background: var(--color-pdf-paper); box-shadow: var(--shadow-md); padding: var(--space-6) var(--space-5); font-family: Georgia, "Times New Roman", serif; font-size: var(--text-sm); line-height: 1.7; min-height: 480px; }
+.paper .ln { white-space: pre-wrap; overflow-wrap: anywhere; }
+.paper .sec { font-family: var(--font-sans); font-weight: 700; margin-top: var(--space-3); }
+.paper .blank { height: 1.7em; }
+mark.q { background: var(--color-highlight-bg); outline: 2px solid var(--color-highlight-border); border-radius: 2px; color: var(--color-text); }
+.ai-note { margin: var(--space-3); padding: var(--space-2) var(--space-3); background: var(--color-review-bg); color: var(--color-review-text); border-radius: var(--radius-md); font-size: var(--text-sm); }
+
+.summary-strip { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.kbd { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--color-border-input); border-bottom-width: 2px; border-radius: var(--radius-sm); padding: 0 5px; background: var(--color-surface); }
+.footer-note { margin-top: var(--space-4); font-size: var(--text-xs); color: var(--color-text-muted); }
+
+/* Settings */
+.form { display: grid; gap: var(--space-5); max-width: 560px; }
+.readonly { padding: var(--space-3); background: var(--color-surface-subtle); border-radius: var(--radius-md); font-size: var(--text-sm); }
+
+/* Dialog + toast */
+.overlay { position: fixed; inset: 0; background: var(--color-overlay); display: grid; place-items: center; padding: var(--space-4); z-index: 20; }
+.dialog { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: min(560px, 100%); max-height: 90vh; overflow: auto; }
+.dialog-head { padding: var(--space-5) var(--space-5) 0; }
+.dialog-head h2 { font-size: var(--text-md); font-weight: 600; }
+.dialog-body { padding: var(--space-4) var(--space-5); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.dialog-foot { padding: var(--space-4) var(--space-5); border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
+.warn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.warn-list li { padding: var(--space-2) var(--space-3); background: var(--color-review-bg); color: var(--color-review-text); border-radius: var(--radius-md); font-size: var(--text-sm); }
+.toasts { position: fixed; right: var(--space-4); bottom: var(--space-4); display: grid; gap: var(--space-2); z-index: 30; max-width: calc(100% - 32px); }
+.toast { background: var(--color-text); color: var(--color-inverse); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); box-shadow: var(--shadow-md); font-size: var(--text-sm); max-width: 380px; }
+.toast-error { background: var(--color-danger); }
+
+@media (max-width: 900px) {
+  .split-record { grid-template-columns: minmax(0, 1fr) !important; }
+  #inv-hazard { width: 100% !important; }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--color-border); padding: var(--space-3) var(--space-4); }
+  .nav { flex-direction: row; flex-wrap: wrap; }
+  .nav button { width: auto; }
+  .mode-badge { margin-top: 0; }
+  .main { padding: var(--space-4); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .viewer { position: static; }
+}
+@media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+</style>
+
+<div class="proto-banner" role="note">
+  <span><strong>Prototype</strong> · fictional facility, products and suppliers · hazard data is for demonstration only · nothing is uploaded or processed</span>
+  <button type="button" id="reset-demo">Reset demo</button>
+</div>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="brand-name"><span class="brand-mark" aria-hidden="true"></span>ChemReady</div>
+      <div class="brand-facility" id="facility-label"></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="mode-badge"><strong>● Local model</strong><br>Files stay on the ChemReady server.</div>
+  </aside>
+  <main class="main" id="main" tabindex="-1"></main>
+</div>
+<div id="dialog-root"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ---------- Reference data (GHS) ---------- */
+const H_TEXT = {
+  H225: "Highly flammable liquid and vapour.",
+  H226: "Flammable liquid and vapour.",
+  H251: "Self-heating: may catch fire.",
+  H290: "May be corrosive to metals.",
+  H302: "Harmful if swallowed.",
+  H314: "Causes severe skin burns and eye damage.",
+  H315: "Causes skin irritation.",
+  H317: "May cause an allergic skin reaction.",
+  H319: "Causes serious eye irritation.",
+  H334: "May cause allergy or asthma symptoms or breathing difficulties if inhaled.",
+  H335: "May cause respiratory irritation.",
+  H336: "May cause drowsiness or dizziness."
+};
+const PICTO = {
+  GHS01: "Exploding bomb", GHS02: "Flame", GHS03: "Flame over circle", GHS04: "Gas cylinder",
+  GHS05: "Corrosion", GHS06: "Skull and crossbones", GHS07: "Exclamation mark",
+  GHS08: "Health hazard", GHS09: "Environment"
+};
+const DEMO_TODAY = new Date(2026, 9, 9);
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/* ---------- Plain code checks (the same rules Phase 6 will implement in Python) ---------- */
+function casValid(cas) {
+  const m = /^(\d{2,7})-(\d{2})-(\d)$/.exec(cas || "");
+  if (!m) return false;
+  const digits = (m[1] + m[2]).split("").reverse();
+  const sum = digits.reduce((acc, d, i) => acc + Number(d) * (i + 1), 0);
+  return sum % 10 === Number(m[3]);
+}
+function hCodeValid(code) { return /^H\d{3}$/.test(code || ""); }
+
+/* ---------- Helpers ---------- */
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function parseISO(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); }
+function fmtDate(iso) { if (!iso) return "—"; const d = parseISO(iso); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
+function dotDate(iso) { const d = parseISO(iso); return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`; }
+function ageYears(iso) { return (DEMO_TODAY - parseISO(iso)) / (365.25 * 24 * 3600 * 1000); }
+function ageText(iso) {
+  const months = Math.floor(ageYears(iso) * 12);
+  const y = Math.floor(months / 12), m = months % 12;
+  return `${y} year${y === 1 ? "" : "s"}${m ? ` ${m} month${m === 1 ? "" : "s"}` : ""} old`;
+}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function pill(kind, label) {
+  const icon = { verified: "✓", review: "!", missing: "○", passed: "•" }[kind];
+  return `<span class="pill pill-${kind}"><span class="i" aria-hidden="true">${icon}</span>${esc(label)}</span>`;
+}
+function signalBadge(s) {
+  if (!s) return `<span class="muted">—</span>`;
+  return `<span class="signal ${s === "Danger" ? "signal-danger" : ""}">${esc(s.toUpperCase())}</span>`;
+}
+function pictoBadge(code) {
+  return `<span class="picto" title="${esc(code)} ${esc(PICTO[code] || "")}"><span class="picto-diamond" aria-hidden="true"><span>${esc(code.slice(3))}</span></span>${esc(code)} ${esc(PICTO[code] || "")}</span>`;
+}
+
+/* ---------- Sample data (fictional) ---------- */
+const SEED = {
+  settings: { facility: "Demo Washing Ltd", location: "Gazipur", provider: "", template: "Generic CIL (ChemReady)", maxAge: 3 },
+  products: [
+    { id: "p1", name: "Caustic Soda Flakes", supplier: "Example Chem Co.", file: "Caustic Soda Flakes SDS.pdf", rev: "2021-01-02", signal: "Danger", h: ["H290", "H314"], picto: ["GHS05"],
+      ingredients: [{ name: "Sodium hydroxide", cas: "1310-73-2", pct: "≥ 98%" }], ppe: "Chemical resistant gloves, face shield, protective clothing", storage: "Store in a dry place. Keep container tightly closed.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-02", editedRev: true },
+    { id: "p2", name: "Acetic Acid Glacial", supplier: "Example Chem Co.", file: "Acetic Acid Glacial SDS.pdf", rev: "2024-08-14", signal: "Danger", h: ["H226", "H314"], picto: ["GHS02", "GHS05"],
+      ingredients: [{ name: "Acetic acid", cas: "64-19-7", pct: "≥ 99%" }], ppe: "Acid resistant gloves, goggles, face shield", storage: "Keep away from heat and sources of ignition. Store in a well ventilated place.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-02" },
+    { id: "p3", name: "Soda Ash Light", supplier: "Delta Basic Chemicals", file: "Soda Ash Light SDS.pdf", rev: "2025-03-03", signal: "Warning", h: ["H319"], picto: ["GHS07"],
+      ingredients: [{ name: "Sodium carbonate", cas: "497-19-8", pct: "≥ 99%" }], ppe: "Safety goggles, dust mask", storage: "Store in a dry place. Keep container closed.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-03" },
+    { id: "p4", name: "Industrial Salt", supplier: "Delta Basic Chemicals", file: "Industrial Salt SDS.pdf", rev: "2023-01-20", signal: null, h: [], picto: [],
+      ingredients: [{ name: "Sodium chloride", cas: "7647-14-5", pct: "≥ 99%" }], ppe: "Safety glasses", storage: "Store in a dry place.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-03" },
+    { id: "p5", name: "Sodium Hydrosulphite", supplier: "Example Chem Co.", file: "Sodium Hydrosulphite SDS.pdf", rev: "2024-11-10", signal: "Danger", h: ["H251", "H302"], picto: ["GHS02", "GHS07"],
+      ingredients: [{ name: "Sodium dithionite", cas: "7775-14-6", pct: "≥ 85%" }], ppe: "Gloves, safety goggles, dust mask", storage: "Store in a cool, dry place. Keep away from water and moisture.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-04" },
+    { id: "p6", name: "Hydrochloric Acid 33%", supplier: "Delta Basic Chemicals", file: "Hydrochloric Acid 33 SDS.pdf", rev: "2023-09-18", signal: "Danger", h: ["H290", "H314", "H335"], picto: ["GHS05", "GHS07"],
+      ingredients: [{ name: "Hydrogen chloride", cas: "7647-01-0", pct: "30–35%" }, { name: "Water", cas: "7732-18-5", pct: "65–70%" }], ppe: "Acid resistant gloves, goggles, face shield", storage: "Store in a well ventilated place. Keep container tightly closed.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-04" },
+    { id: "p7", name: "Demofix Red RX", supplier: "Example Colours Ltd", file: "Demofix Red RX SDS.pdf", rev: "2024-03-12", signal: "Danger", h: ["H317", "H334"], picto: ["GHS07", "GHS08"],
+      ingredients: [{ name: "Reactive dye (trade secret)", cas: null, pct: "60–80%" }], ppe: "Gloves, dust mask, safety glasses", storage: "Store in a dry place away from direct sunlight.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-05",
+      note: "Supplier says CAS is a trade secret. Asked again on 5 Oct 2026." },
+    { id: "p8", name: "Demosoft SL", supplier: "Example Auxiliaries Ltd", file: "Demosoft SL SDS.pdf", rev: "2025-06-05", signal: null, h: [], picto: [],
+      ingredients: [{ name: "Water", cas: "7732-18-5", pct: "60–80%" }, { name: "Fatty amide derivative (trade secret)", cas: null, pct: "20–40%" }], ppe: "Gloves, safety glasses", storage: "Store between 5 and 35 °C. Protect from frost.", missingSections: [], approvedBy: "Rahima Akter", approvedAt: "2026-10-06" },
+    { id: "p9", name: "Demobind XL", supplier: "Example Polymers Ltd", file: "Demobind XL SDS.pdf", rev: "2025-02-17", signal: "Warning", h: ["H317"], picto: ["GHS07"],
+      ingredients: [{ name: "Water", cas: "7732-18-5", pct: "50–60%" }, { name: "Isopropanol", cas: "67-63-0", pct: "1–5%" }], ppe: null, storage: "Store between 5 and 30 °C.", missingSections: ["8", "9"], approvedBy: "Rahima Akter", approvedAt: "2026-10-06" }
+  ],
+  docs: [
+    { id: "d10", file: "Demowet NF SDS.pdf", status: "review", uploaded: "2026-10-09", reviewKey: "demowet" },
+    { id: "d11", file: "Isopropanol 99 SDS.pdf", status: "review", uploaded: "2026-10-09", reviewKey: "ipa" },
+    { id: "d12", file: "old_binder_scan.pdf", status: "failed", uploaded: "2026-10-08", reason: "Could not read text from this file. It may be a poor scan or password protected." }
+  ]
+};
+
+/* Review data for documents waiting for a person. Quotes match the page text exactly (grounding). */
+const REVIEWS = {
+  demowet: {
+    product: { name: "Demowet NF", supplier: "Example Auxiliaries Ltd", rev: null, signal: "Warning", h: [], picto: [],
+      ingredients: [{ name: "Alcohol ethoxylate (trade secret)", cas: null, pct: "10–20%" }, { name: "Isopropanol", cas: "67-63-0", pct: "1–5%" }, { name: "Water", cas: null, pct: "75–85%" }],
+      ppe: "Protective gloves, safety goggles", storage: "Store in a cool, dry place. Keep container tightly closed.", missingSections: [] },
+    pages: {
+      1: ["SAFETY DATA SHEET", "Version 3.0   Print date: 12.04.2025", "", "#SECTION 1: Identification", "Product name: Demowet NF", "Supplier: Example Auxiliaries Ltd", "Date of revision: 01.03.2025", "Recommended use: wetting agent for textile pretreatment"],
+      2: ["#SECTION 2: Hazard identification", "Signal word: Warning", "Hazard statements:", "H302 Harmful if swallowed.", "H315 Causes skin irritation.", "H3l9 Causes serious eye irritation.", "Pictogram: GHS07"],
+      3: ["#SECTION 3: Composition", "Alcohol ethoxylate   CAS: not disclosed (trade secret)   10–20%", "Isopropanol   CAS 67-63-0   1–5%", "Water   CAS 7732-18-6   75–85%"],
+      4: ["#SECTION 7: Handling and storage", "Store in a cool, dry place. Keep container tightly closed.", "", "#SECTION 8: Exposure controls / personal protection", "PPE: Protective gloves, safety goggles"]
+    },
+    fields: [
+      { group: "Identification", key: "name", label: "Product name", value: "Demowet NF", page: 1, quote: "Product name: Demowet NF", status: "passed" },
+      { group: "Identification", key: "supplier", label: "Supplier", value: "Example Auxiliaries Ltd", page: 1, quote: "Supplier: Example Auxiliaries Ltd", status: "passed" },
+      { group: "Identification", key: "rev", label: "Revision date", value: null, page: 1, quote: null, aiQuote: "Revision date: 12.04.2025", status: "review", reason: "Quote not found in the PDF. The value was removed.", input: "date" },
+      { group: "Hazards", key: "signal", label: "Signal word", value: "Warning", page: 2, quote: "Signal word: Warning", status: "passed" },
+      { group: "Hazards", key: "h", label: "H code", value: "H302", page: 2, quote: "H302 Harmful if swallowed.", status: "passed" },
+      { group: "Hazards", key: "h", label: "H code", value: "H315", page: 2, quote: "H315 Causes skin irritation.", status: "passed" },
+      { group: "Hazards", key: "h", label: "H code", value: "H3l9", page: 2, quote: "H3l9 Causes serious eye irritation.", status: "review", reason: "This is not a valid H code format (H plus 3 digits).", input: "h" },
+      { group: "Hazards", key: "picto", label: "Pictogram", value: "GHS07", page: 2, quote: "Pictogram: GHS07", status: "passed" },
+      { group: "Composition", key: "cas:0", label: "CAS · Alcohol ethoxylate", value: null, page: 3, quote: "CAS: not disclosed (trade secret)", status: "missing", reason: "Not disclosed in this SDS." },
+      { group: "Composition", key: "cas:1", label: "CAS · Isopropanol", value: "67-63-0", page: 3, quote: "Isopropanol   CAS 67-63-0   1–5%", status: "passed" },
+      { group: "Composition", key: "cas:2", label: "CAS · Water", value: "7732-18-6", page: 3, quote: "Water   CAS 7732-18-6   75–85%", status: "review", reason: "CAS check digit is wrong. Check the number in the SDS.", input: "cas" },
+      { group: "Handling and storage", key: "storage", label: "Storage", value: "Store in a cool, dry place. Keep container tightly closed.", page: 4, quote: "Store in a cool, dry place. Keep container tightly closed.", status: "passed" },
+      { group: "Exposure controls", key: "ppe", label: "PPE", value: "Protective gloves, safety goggles", page: 4, quote: "PPE: Protective gloves, safety goggles", status: "passed" }
+    ]
+  },
+  ipa: {
+    product: { name: "Isopropanol 99%", supplier: "Example Solvents Ltd", rev: "2025-07-21", signal: "Danger", h: [], picto: [],
+      ingredients: [{ name: "Propan-2-ol", cas: "67-63-0", pct: "≥ 99%" }], ppe: "Solvent resistant gloves, safety goggles", storage: "Keep away from heat, sparks and open flames. Store in a well ventilated place.", missingSections: [] }
+  }
+};
+
+/* Build field list + page text for a product, so quotes always exist on the page. */
+function buildFromProduct(p) {
+  const pages = { 1: [], 2: [], 3: [], 4: [] };
+  const fields = [];
+  const add = (f) => fields.push(Object.assign({ status: "passed" }, f));
+  pages[1].push("SAFETY DATA SHEET", "according to GHS", "", "#SECTION 1: Identification");
+  const qn = `Product name: ${p.name}`, qs = `Supplier: ${p.supplier}`;
+  pages[1].push(qn, qs);
+  add({ group: "Identification", key: "name", label: "Product name", value: p.name, page: 1, quote: qn });
+  add({ group: "Identification", key: "supplier", label: "Supplier", value: p.supplier, page: 1, quote: qs });
+  if (p.rev) {
+    const qr = `Revision date: ${dotDate(p.rev)}`;
+    pages[1].push(qr);
+    add({ group: "Identification", key: "rev", label: "Revision date", value: p.rev, page: 1, quote: qr, edited: p.editedRev });
+  } else {
+    add({ group: "Identification", key: "rev", label: "Revision date", value: null, page: null, quote: null, status: "review", reason: "Not found in this SDS.", input: "date" });
+  }
+  pages[2].push("#SECTION 2: Hazard identification");
+  if (p.emptyHazards) {
+    pages[2].push("");
+    add({ group: "Hazards", key: "h", label: "H code", value: null, page: 2, quote: null, status: "review", reason: "Section 2 looks empty. Please check the hazards.", input: "h" });
+  } else {
+    const qsw = p.signal ? `Signal word: ${p.signal}` : "Not classified as hazardous according to GHS.";
+    pages[2].push(qsw);
+    add({ group: "Hazards", key: "signal", label: "Signal word", value: p.signal || "Not classified", page: 2, quote: qsw });
+    if (p.h.length) pages[2].push("Hazard statements:");
+    p.h.forEach(code => { const q = `${code} ${H_TEXT[code]}`; pages[2].push(q); add({ group: "Hazards", key: "h", label: "H code", value: code, page: 2, quote: q }); });
+    p.picto.forEach(code => { const q = `Pictogram: ${code}`; pages[2].push(q); add({ group: "Hazards", key: "picto", label: "Pictogram", value: code, page: 2, quote: q }); });
+  }
+  pages[3].push("#SECTION 3: Composition");
+  p.ingredients.forEach((ing, i) => {
+    const q = ing.cas ? `${ing.name}   CAS ${ing.cas}   ${ing.pct}` : `${ing.name.replace(" (trade secret)", "")}   CAS: not disclosed (trade secret)   ${ing.pct}`;
+    pages[3].push(q);
+    const short = ing.name.replace(" (trade secret)", "");
+    add(ing.cas
+      ? { group: "Composition", key: `cas:${i}`, label: `CAS · ${short}`, value: ing.cas, page: 3, quote: q }
+      : { group: "Composition", key: `cas:${i}`, label: `CAS · ${short}`, value: null, page: 3, quote: "CAS: not disclosed (trade secret)", status: "missing", reason: "Not disclosed in this SDS." });
+  });
+  pages[4].push("#SECTION 7: Handling and storage", p.storage || "");
+  add(p.storage ? { group: "Handling and storage", key: "storage", label: "Storage", value: p.storage, page: 4, quote: p.storage }
+                : { group: "Handling and storage", key: "storage", label: "Storage", value: null, page: null, quote: null, status: "missing", reason: "Not found in this SDS." });
+  if (p.missingSections && p.missingSections.includes("8")) {
+    pages[4].push("", "#SECTION 10: Stability and reactivity", "Stable under normal conditions.");
+    add({ group: "Exposure controls", key: "ppe", label: "PPE", value: null, page: null, quote: null, status: "missing", reason: "Section 8 not found in this SDS." });
+  } else {
+    const qp = `PPE: ${p.ppe}`;
+    pages[4].push("", "#SECTION 8: Exposure controls / personal protection", qp);
+    add({ group: "Exposure controls", key: "ppe", label: "PPE", value: p.ppe, page: 4, quote: qp });
+  }
+  return { pages, fields };
+}
+
+/* Isopropanol: built from a product, all checks pass (the zero-flag case). */
+(function () {
+  const p = Object.assign({}, REVIEWS.ipa.product, { h: ["H225", "H319", "H336"], picto: ["GHS02", "GHS07"] });
+  Object.assign(REVIEWS.ipa, buildFromProduct(p));
+})();
+
+function templateReview(name) {
+  const p = { name, supplier: "Example Auxiliaries Ltd", rev: "2025-08-20", signal: null, h: [], picto: [], emptyHazards: true,
+    ingredients: [{ name: "Water", cas: "7732-18-5", pct: "70–90%" }, { name: "Stilbene derivative (trade secret)", cas: null, pct: "10–30%" }],
+    ppe: "Gloves, safety glasses", storage: "Store between 5 and 35 °C.", missingSections: [] };
+  return Object.assign({ product: p }, buildFromProduct(p));
+}
+
+/* ---------- State ---------- */
+let state;
+function resetState() {
+  state = clone(SEED);
+  state.reviews = {};
+  Object.keys(REVIEWS).forEach(k => { state.reviews[k] = clone(REVIEWS[k]); });
+  state.route = { name: "inventory" };
+  state.batch = [];
+  state.docFilter = "all";
+  state.flagFilter = "all";
+  state.inv = { q: "", supplier: "", hazard: "", status: "" };
+  state.review = { active: 0, editing: null, editError: "" };
+  state.record = { active: 0 };
+  state.nextId = 100;
+  state.timers && state.timers.forEach(clearInterval);
+  state.timers = [];
+}
+
+/* ---------- Derived data ---------- */
+function flagsFor(p) {
+  const out = [];
+  if (p.rev && ageYears(p.rev) > state.settings.maxAge)
+    out.push({ type: "old", label: "SDS too old", detail: `Revision date ${fmtDate(p.rev)}, ${ageText(p.rev)}` });
+  const noCas = p.ingredients.filter(i => !i.cas).length;
+  if (noCas) out.push({ type: "cas", label: "Missing CAS", detail: `${noCas} of ${p.ingredients.length} ingredient${p.ingredients.length === 1 ? "" : "s"} ${noCas === 1 ? "has" : "have"} no CAS number` });
+  if (p.missingSections && p.missingSections.length)
+    out.push({ type: "sections", label: "Missing sections", detail: `Section${p.missingSections.length > 1 ? "s" : ""} ${p.missingSections.join(" and ")} not found` });
+  return out;
+}
+function allFlags() {
+  const rows = [];
+  state.products.forEach(p => flagsFor(p).forEach(f => rows.push(Object.assign({ product: p }, f))));
+  state.docs.filter(d => d.status === "failed").forEach(d => rows.push({ type: "unreadable", label: "Unreadable file", detail: "Could not read text from this file", doc: d }));
+  return rows;
+}
+function productStatus(p) {
+  if (p.reopened) return { kind: "review", label: "Needs review" };
+  const f = flagsFor(p);
+  return f.length ? { kind: "review", label: `Needs action: ${f[0].label}` } : { kind: "verified", label: "Verified" };
+}
+function reviewCount(review) { return review.fields.filter(f => f.status === "review" && !f.resolution).length; }
+function docsToReview() { return state.docs.filter(d => d.status === "review"); }
+
+/* ---------- Navigation ---------- */
+const NAV = [
+  { name: "upload", label: "Upload" },
+  { name: "documents", label: "Documents", count: () => docsToReview().length, countKind: "review" },
+  { name: "inventory", label: "Inventory", count: () => state.products.length },
+  { name: "action", label: "Needs action", count: () => allFlags().length, countKind: "review" },
+  { name: "settings", label: "Settings" }
+];
+function go(name, extra) {
+  state.route = Object.assign({ name }, extra || {});
+  if (["upload", "documents", "inventory", "action", "settings"].includes(name)) {
+    try { history.replaceState(null, "", "#" + name); } catch (e) { /* frame may refuse; state still works */ }
+  }
+  if (name === "review") state.review = { active: firstOpenIndex(state.reviews[extra.reviewKey]), editing: null, editError: "" };
+  if (name === "product") state.record = { active: 0 };
+  render();
+  document.getElementById("main").focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+function firstOpenIndex(review) {
+  const order = orderedFields(review);
+  const i = order.findIndex(f => f.status === "review" && !f.resolution);
+  return review.fields.indexOf(order[i >= 0 ? i : 0]);
+}
+
+function renderNav() {
+  const current = state.route.name === "review" ? "documents" : state.route.name === "product" ? "inventory" : state.route.name;
+  document.getElementById("nav").innerHTML = NAV.map(n => {
+    const c = n.count ? n.count() : null;
+    const showCount = c !== null && (c > 0 || n.name === "inventory");
+    return `<button type="button" data-nav="${n.name}" ${current === n.name ? 'aria-current="page"' : ""}>
+      <span>${n.label}</span>${showCount ? `<span class="count ${n.countKind && c ? "count-" + n.countKind : ""}">${c}</span>` : ""}</button>`;
+  }).join("");
+  document.getElementById("facility-label").textContent = `${state.settings.facility}, ${state.settings.location}`;
+}
+
+function pageHead(title, sub, actionsHtml, backHtml) {
+  return `${backHtml || ""}<div class="page-head"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><div class="row">${actionsHtml || ""}</div></div>`;
+}
+const FOOTER = `<p class="footer-note">ChemReady checks that your data matches your SDS files. It does not decide MRSL conformance. Use the ZDHC Gateway and your solution provider for that.</p>`;
+
+/* ---------- S1 Upload ---------- */
+function renderUpload() {
+  const batch = state.batch.length ? `
+    <div class="card"><div class="card-pad" style="padding-bottom:var(--space-2)"><h2 style="font-size:var(--text-md);font-weight:600">This batch (${state.batch.length} file${state.batch.length === 1 ? "" : "s"})</h2></div>
+    <ul class="batch-list">${state.batch.map(b => `<li><span class="${b.ok ? "ok" : "bad"}" aria-hidden="true">${b.ok ? "✓" : "✕"}</span>
+      <span style="flex:1 1 220px;min-width:0;overflow-wrap:anywhere">${esc(b.file)}</span><span class="${b.ok ? "muted" : ""}" style="color:${b.ok ? "" : "var(--color-missing-text)"}">${esc(b.msg)}</span></li>`).join("")}</ul></div>` : "";
+  return pageHead("Upload SDS files", "Add up to 50 PDF files at a time.", `<button class="btn btn-secondary" data-nav="documents">View documents →</button>`) + `
+    <div class="dropzone" id="dropzone">
+      <h2>Drag SDS PDF files here, or <button class="btn-link" type="button" id="choose">Choose files</button></h2>
+      <p class="muted small" style="margin:0">PDF only · up to 50 files · up to 20 MB each</p>
+      <input type="file" id="file-input" multiple hidden>
+      <p class="small" style="margin:var(--space-4) 0 0">No files to hand? <button class="btn btn-secondary btn-sm" type="button" id="sample-batch">Try a sample batch</button></p>
+    </div>
+    <div class="notice" role="note"><span aria-hidden="true">●</span><span><strong>Local model:</strong> files are processed on the ChemReady server and are not sent to any outside AI service.</span></div>
+    ${batch}`;
+}
+function addFiles(list) {
+  const files = Array.from(list);
+  if (files.length > 50) { toast(`You selected ${files.length} files. Please select 50 or fewer.`, true); return; }
+  state.batch = files.map(f => {
+    if (!/\.pdf$/i.test(f.name)) return { file: f.name, ok: false, msg: "Not a PDF. Only PDF files can be added." };
+    if (f.size > 20 * 1024 * 1024) return { file: f.name, ok: false, msg: "This file is larger than 20 MB. Please check it is a single SDS." };
+    return { file: f.name, ok: true, msg: "Prototype: your file is not read or stored." };
+  });
+  render();
+}
+function sampleBatch() {
+  const existing = state.products.find(p => p.file === "Caustic Soda Flakes SDS.pdf");
+  state.batch = [
+    { file: "Demowhite OB SDS.pdf", ok: true, msg: "added" },
+    { file: "Demogloss PX SDS.pdf", ok: true, msg: "added" },
+    { file: "binder_scan_2019.pdf", ok: true, msg: "added" },
+    { file: "inventory_sept.xlsx", ok: false, msg: "Not a PDF. Only PDF files can be added." },
+    { file: "Caustic Soda Flakes SDS.pdf", ok: false, msg: existing ? `Already uploaded on ${fmtDate(existing.approvedAt)}. Skipped.` : "Already uploaded. Skipped." }
+  ];
+  const outcomes = { "Demowhite OB SDS.pdf": "review", "Demogloss PX SDS.pdf": "review", "binder_scan_2019.pdf": "failed" };
+  state.batch.filter(b => b.ok).forEach((b, i) => {
+    const doc = { id: "d" + (state.nextId++), file: b.file, status: "processing", stage: 0, uploaded: "2026-10-09", outcome: outcomes[b.file], waitAt: i === 1 ? 2 : -1, scanned: b.file.includes("scan") };
+    state.docs.unshift(doc);
+    startProcessing(doc);
+  });
+  toast("3 files added. Processing has started.");
+  render();
+}
+const STAGES = ["Queued", "Reading pages", "Finding sections", "Extracting", "Checking", "Ready for review"];
+function startProcessing(doc) {
+  doc.status = "processing"; doc.stage = 0; doc.waiting = false;
+  const t = setInterval(() => {
+    if (doc.waitAt === doc.stage && !doc.waited) { doc.waiting = true; doc.waited = true; render(); return; }
+    doc.waiting = false;
+    doc.stage++;
+    if (doc.outcome === "failed" && doc.stage >= 2) {
+      clearInterval(t); doc.status = "failed"; doc.reason = "Could not read text from this file. It may be a poor scan or password protected.";
+      toast(`Could not read ${doc.file}. It is listed under Needs action.`, true);
+    } else if (doc.stage >= STAGES.length - 1) {
+      clearInterval(t); doc.status = "review";
+      const key = "r" + doc.id; state.reviews[key] = templateReview(doc.file.replace(/ SDS\.pdf$/i, "").replace(/\.pdf$/i, "")); doc.reviewKey = key;
+    }
+    render();
+  }, 900);
+  state.timers.push(t);
+}
+
+/* ---------- S2 Documents ---------- */
+function renderDocuments() {
+  const groups = {
+    all: state.docs.concat(approvedDocs()),
+    review: docsToReview(),
+    processing: state.docs.filter(d => d.status === "processing"),
+    approved: approvedDocs(),
+    failed: state.docs.filter(d => d.status === "failed")
+  };
+  const labels = { all: "All", review: "Needs review", processing: "Processing", approved: "Approved", failed: "Failed" };
+  const rows = groups[state.docFilter];
+  const order = { review: 0, processing: 1, failed: 2, approved: 3 };
+  rows.sort((a, b) => order[a.status] - order[b.status]);
+  const processing = groups.processing.length;
+  const body = !groups.all.length ? emptyState("No SDS files yet", "Upload your first batch to start your inventory.", "Upload files", "upload")
+    : !rows.length ? `<div class="empty"><p>${state.docFilter === "review" ? "All caught up. Nothing waiting for review." : "No documents here."}</p></div>`
+    : `<div class="table-wrap"><table class="data"><thead><tr><th>File</th><th>Product</th><th>Status</th><th class="num">Flags</th><th>Uploaded</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
+      ${rows.map(docRow).join("")}</tbody></table></div>`;
+  return pageHead("Documents", "Every SDS you uploaded and where it is in the process.", `<button class="btn btn-primary" data-nav="upload">Upload files</button>`) +
+    (processing ? `<div class="notice notice-warn" role="status"><span aria-hidden="true">●</span><span>Processing ${processing} file${processing > 1 ? "s" : ""}. You can keep working; this page updates by itself.</span></div>` : "") +
+    `<div class="tabs" role="tablist">${Object.keys(labels).map(k => `<button type="button" role="tab" data-docfilter="${k}" aria-selected="${state.docFilter === k}">${labels[k]} <span class="count ${k === "review" && groups[k].length ? "count-review" : ""}">${groups[k].length}</span></button>`).join("")}</div>
+    <div class="card">${body}</div>`;
+}
+function approvedDocs() { return state.products.map(p => ({ id: "a" + p.id, file: p.file, status: "approved", product: p, uploaded: p.approvedAt })); }
+function docRow(d) {
+  let product = "—", status, flags = "—", action = "";
+  if (d.status === "review") {
+    const r = state.reviews[d.reviewKey]; product = esc(r.product.name);
+    const n = reviewCount(r); flags = n;
+    status = pill("review", "Needs review");
+    action = `<button class="btn btn-primary btn-sm" data-review="${d.reviewKey}">Review</button>`;
+  } else if (d.status === "processing") {
+    const pct = Math.round((d.stage / (STAGES.length - 1)) * 100);
+    status = `<div class="progress"><span class="small">${d.waiting ? "Waiting for AI capacity. Retrying automatically." : STAGES[d.stage] + "…"}</span><div class="bar"><div style="width:${pct}%"></div></div>${d.scanned ? `<span class="xs muted">Scanned, using OCR</span>` : ""}</div>`;
+  } else if (d.status === "failed") {
+    status = `<span title="${esc(d.reason)}">${pill("missing", "Failed")}</span><div class="xs muted" style="max-width:260px">${esc(d.reason)}</div>`;
+    action = `<div class="row"><button class="btn btn-secondary btn-sm" data-retry="${d.id}">Retry</button><button class="btn btn-danger btn-sm" data-remove="${d.id}">Remove</button></div>`;
+  } else {
+    product = esc(d.product.name); flags = 0; status = pill("verified", "Approved");
+    action = `<button class="btn btn-secondary btn-sm" data-product="${d.product.id}">View</button>`;
+  }
+  return `<tr><td style="overflow-wrap:anywhere;min-width:180px">${esc(d.file)}</td><td>${product}</td><td>${status}</td><td class="num">${flags}</td><td class="nowrap">${fmtDate(d.uploaded)}</td><td>${action}</td></tr>`;
+}
+function emptyState(title, text, btn, nav) {
+  return `<div class="empty"><h2>${title}</h2><p>${text}</p>${btn ? `<button class="btn btn-primary" data-nav="${nav}">${btn}</button>` : ""}</div>`;
+}
+
+/* ---------- S3 Review SDS ---------- */
+const GROUP_ORDER = ["Identification", "Hazards", "Composition", "Handling and storage", "Exposure controls"];
+function orderedFields(review) {
+  const rank = f => f.status === "review" && !f.resolution ? 0 : f.status === "missing" || f.resolution === "missing" ? 1 : 2;
+  return review.fields.slice().sort((a, b) => rank(a) - rank(b) || GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group));
+}
+function renderReview() {
+  const key = state.route.reviewKey, r = state.reviews[key];
+  const open = reviewCount(r);
+  const missing = r.fields.filter(f => f.status === "missing" || f.resolution === "missing").length;
+  const passed = r.fields.length - open - missing;
+  const sections = [
+    { title: `Needs review (${open})`, items: r.fields.filter(f => f.status === "review" && !f.resolution) },
+    { title: `Missing (${missing})`, items: r.fields.filter(f => f.status === "missing" || f.resolution === "missing") },
+    { title: `Resolved and passed checks (${passed})`, items: r.fields.filter(f => (f.status === "passed" || (f.resolution && f.resolution !== "missing"))) }
+  ];
+  const ready = open === 0;
+  const headline = r.fields.every(f => f.status !== "review") && !r.fields.some(f => f.resolution)
+    ? `All checks passed on ${passed} fields. Look over them, then approve.`
+    : ready ? "All doubtful fields are resolved. Approve product to add it to your inventory." : `${open} field${open === 1 ? "" : "s"} need${open === 1 ? "s" : ""} review · ${passed} passed checks · ${missing} missing`;
+  const approveBtn = `<button class="btn btn-primary" id="approve-product" ${ready ? "" : "disabled"} title="${ready ? "" : `Resolve the ${open} field${open === 1 ? "" : "s"} that need review first.`}">Approve product</button>`;
+  const active = r.fields[state.review.active];
+  const doc = state.docs.find(d => d.reviewKey === key);
+  r.file = doc ? doc.file : "";
+  return `<button class="back" data-nav="documents">← Documents</button>` +
+    pageHead(`${esc(r.product.name)} · <span class="muted" style="font-weight:400">${esc(r.product.supplier)}</span>`, headline, approveBtn) + `
+    <div class="split">
+      <div class="fields">
+        ${sections.filter(s => s.items.length).map(s => `<div><div class="group-title"><span>${s.title}</span></div>
+          <div class="card">${s.items.map(f => fieldRow(r, f, true)).join("")}</div></div>`).join("")}
+        <p class="xs muted">Keyboard: <span class="kbd">A</span> approve · <span class="kbd">E</span> edit · <span class="kbd">M</span> not in SDS · <span class="kbd">J</span>/<span class="kbd">K</span> next/previous field</p>
+      </div>
+      ${viewer(r, active, "review")}
+    </div>`;
+}
+function fieldStatusPill(f) {
+  if (f.resolution === "approved") return pill("passed", "Approved");
+  if (f.resolution === "edited") return pill("passed", "Edited");
+  if (f.resolution === "missing" || f.status === "missing") return pill("missing", "Missing");
+  if (f.status === "review") return pill("review", "Needs review");
+  return pill("passed", "Passed checks");
+}
+function displayValue(f) {
+  if (f.value == null || f.resolution === "missing") return `<span class="muted">—</span>`;
+  if (f.key === "rev") return fmtDate(f.value);
+  if (f.key === "h") return `<span class="code">${esc(f.value)}</span> ${esc(H_TEXT[f.value] || "")}`;
+  if (f.key.startsWith("cas")) return `<span class="code">${esc(f.value)}</span>`;
+  if (f.key === "picto") return pictoBadge(f.value);
+  if (f.key === "signal") return f.value === "Not classified" ? "Not classified" : signalBadge(f.value);
+  return esc(f.value);
+}
+function fieldRow(r, f, editable) {
+  const idx = r.fields.indexOf(f);
+  const isActive = idx === (editable ? state.review.active : state.record.active);
+  const open = f.status === "review" && !f.resolution;
+  let body = "";
+  if (editable && state.review.editing === idx) {
+    const type = f.input === "date" ? "date" : "text";
+    const val = f.input === "date" ? (f.value || "") : (f.value || "");
+    body = `<form class="field-actions" data-editform="${idx}" style="flex-direction:column;align-items:stretch">
+      <label class="field-label-sm" for="edit-input">Correct value${f.input === "cas" ? " (CAS number, for example 7732-18-5)" : f.input === "h" ? " (for example H319)" : ""}</label>
+      <input class="input" id="edit-input" type="${type}" value="${esc(val)}" autocomplete="off">
+      ${state.review.editError ? `<div class="error-text">${esc(state.review.editError)}</div>` : ""}
+      <div class="row"><button class="btn btn-primary btn-sm" type="submit">Save</button><button class="btn btn-secondary btn-sm" type="button" data-canceledit>Cancel</button></div></form>`;
+  } else if (editable && open) {
+    body = `<div class="field-actions"><button class="btn btn-secondary btn-sm" data-act="approve" data-idx="${idx}">Approve</button>
+      <button class="btn btn-secondary btn-sm" data-act="edit" data-idx="${idx}">Edit</button>
+      <button class="btn btn-secondary btn-sm" data-act="missing" data-idx="${idx}">Not in SDS</button></div>`;
+  }
+  const reason = open ? `<div class="reason reason-review">${esc(f.reason)}</div>`
+    : (f.status === "missing" && !f.resolution) ? `<div class="reason reason-missing">${esc(f.reason)}</div>`
+    : f.resolution === "edited" ? `<div class="resolved">Edited by Rahima Akter</div>`
+    : f.resolution === "missing" ? `<div class="reason reason-missing">Marked as missing by Rahima Akter</div>`
+    : f.resolution === "approved" ? `<div class="resolved">Approved by Rahima Akter</div>` : "";
+  return `<div class="field ${isActive ? "active" : ""}" data-field="${idx}" data-mode="${editable ? "review" : "record"}">
+    <div class="field-top"><span class="field-label-sm">${esc(f.label)}${f.page ? ` · p.${f.page}` : ""}</span>${fieldStatusPill(f)}</div>
+    <div class="field-value">${displayValue(f)}</div>${reason}${body}</div>`;
+}
+function viewer(r, f, mode) {
+  const page = (f && f.page) || 1;
+  const total = Object.keys(r.pages).length;
+  const lines = r.pages[page] || [];
+  const quote = f && f.resolution !== "missing" ? f.quote : null;
+  const html = lines.map(line => {
+    if (line === "") return `<div class="blank"></div>`;
+    if (line.startsWith("#")) return `<div class="ln sec">${esc(line.slice(1))}</div>`;
+    if (quote && line.includes(quote)) {
+      const i = line.indexOf(quote);
+      return `<div class="ln">${esc(line.slice(0, i))}<mark class="q">${esc(quote)}</mark>${esc(line.slice(i + quote.length))}</div>`;
+    }
+    return `<div class="ln">${esc(line)}</div>`;
+  }).join("");
+  const note = f && f.aiQuote && !f.resolution ? `<div class="ai-note">The AI quoted “${esc(f.aiQuote)}”, but that text is not on any page, so the value was removed. Look for the revision date on this page.</div>`
+    : f && !f.page ? `<div class="ai-note">This value has no source page in the SDS.</div>` : "";
+  return `<section class="card viewer" aria-label="Source PDF">
+    <div class="viewer-bar"><span>${r.file ? esc(r.file) + " · " : ""}Page ${page} of ${total}</span>
+      <span class="row"><button class="btn btn-secondary btn-sm" data-page="${page - 1}" data-pmode="${mode}" ${page <= 1 ? "disabled" : ""} aria-label="Previous page">‹</button>
+      <button class="btn btn-secondary btn-sm" data-page="${page + 1}" data-pmode="${mode}" ${page >= total ? "disabled" : ""} aria-label="Next page">›</button></span></div>
+    ${note}
+    <div class="desk"><div class="paper">${html}</div></div></section>`;
+}
+function resolveField(idx, how) {
+  const r = state.reviews[state.route.reviewKey], f = r.fields[idx];
+  if (!(f.status === "review" && !f.resolution)) return;
+  if (how === "approve" && f.value == null) { toast("There is no value to approve. Use Edit to enter it, or Not in SDS.", true); return; }
+  if (how === "approve" && f.input === "h" && !hCodeValid(f.value)) { toast("This value fails the H code check. Use Edit to correct it.", true); return; }
+  if (how === "approve" && f.input === "cas" && !casValid(f.value)) { toast("This CAS number fails the check digit. Use Edit to correct it.", true); return; }
+  if (how === "edit") { state.review.editing = idx; state.review.active = idx; state.review.editError = ""; render(); const el = document.getElementById("edit-input"); el && el.focus(); return; }
+  f.resolution = how === "approve" ? "approved" : "missing";
+  moveToNextOpen(r);
+  render();
+}
+function saveEdit(idx, raw) {
+  const r = state.reviews[state.route.reviewKey], f = r.fields[idx];
+  const v = (raw || "").trim();
+  let err = "";
+  if (!v) err = "Enter a value, or cancel and use Not in SDS.";
+  else if (f.input === "cas" && !casValid(v)) err = "CAS check digit is wrong. Check the number in the SDS.";
+  else if (f.input === "h" && !hCodeValid(v)) err = "This is not a valid H code format (H plus 3 digits).";
+  else if (f.input === "h" && !H_TEXT[v]) err = "Prototype only knows a few H codes. Try H319.";
+  if (err) { state.review.editError = err; render(); const el = document.getElementById("edit-input"); el && (el.value = v, el.focus()); return; }
+  f.value = v; f.resolution = "edited"; state.review.editing = null; state.review.editError = "";
+  moveToNextOpen(r); render();
+}
+function moveToNextOpen(r) {
+  const i = r.fields.findIndex(f => f.status === "review" && !f.resolution);
+  if (i >= 0) state.review.active = i;
+}
+function approveProduct() {
+  const key = state.route.reviewKey, r = state.reviews[key];
+  if (reviewCount(r)) return;
+  const p = clone(r.product);
+  p.h = []; p.picto = [];
+  r.fields.forEach(f => {
+    const val = f.resolution === "missing" || f.value == null ? null : f.value;
+    if (f.key === "h") { if (val) p.h.push(val); }
+    else if (f.key === "picto") { if (val) p.picto.push(val); }
+    else if (f.key.startsWith("cas:")) { p.ingredients[Number(f.key.split(":")[1])].cas = val; }
+    else if (f.key === "signal") p.signal = val === "Not classified" ? null : val;
+    else p[f.key] = val;
+  });
+  const doc = state.docs.find(d => d.reviewKey === key);
+  p.emptyHazards = false; p.reopened = false;
+  p.file = doc.file; p.approvedBy = "Rahima Akter"; p.approvedAt = "2026-10-09";
+  if (r.productId) { p.id = r.productId; state.products = state.products.map(x => x.id === p.id ? p : x); }
+  else { p.id = "p" + (state.nextId++); state.products.unshift(p); }
+  state.docs = state.docs.filter(d => d !== doc);
+  toast(`${p.name} added to inventory.`);
+  const next = docsToReview()[0];
+  if (next) { go("review", { reviewKey: next.reviewKey }); const n = reviewCount(state.reviews[next.reviewKey]); toast(`Next: ${state.reviews[next.reviewKey].product.name} (${n ? `${n} field${n === 1 ? "" : "s"} to review` : "nothing flagged, look over and approve"})`); }
+  else go("documents");
+}
+
+/* ---------- S4 Inventory ---------- */
+function renderInventory() {
+  if (!state.products.length) return pageHead("Inventory", "Every approved chemical product in your facility.") +
+    `<div class="card">${emptyState("Your inventory is empty", "Approve reviewed SDS files and they will appear here.", "Go to documents", "documents")}</div>`;
+  const f = state.inv;
+  const suppliers = [...new Set(state.products.map(p => p.supplier))].sort();
+  const hazards = [...new Set(state.products.flatMap(p => p.h))].sort();
+  const q = f.q.trim().toLowerCase();
+  const rows = state.products.filter(p => {
+    const hay = [p.name, p.supplier, ...p.h, ...p.ingredients.map(i => i.cas || "")].join(" ").toLowerCase();
+    const st = productStatus(p).kind === "verified" ? "verified" : "action";
+    return (!q || hay.includes(q)) && (!f.supplier || p.supplier === f.supplier) && (!f.hazard || p.h.includes(f.hazard)) && (!f.status || st === f.status);
+  });
+  const anyFilter = f.q || f.supplier || f.hazard || f.status;
+  return pageHead("Inventory", `Every approved chemical product in your facility. <span class="num">${state.products.length}</span> products.`, `<button class="btn btn-primary" id="open-export">Export CIL</button>`) + `
+    <div class="toolbar">
+      <label class="sr-only" for="inv-q">Search</label>
+      <input class="input input-search" id="inv-q" type="search" placeholder="Search name, supplier, CAS, H code" value="${esc(f.q)}" autocomplete="off">
+      <select class="select" id="inv-supplier" aria-label="Supplier"><option value="">All suppliers</option>${suppliers.map(s => `<option ${f.supplier === s ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
+      <select class="select" id="inv-hazard" aria-label="Hazard" style="width:280px"><option value="">All hazards</option>${hazards.map(h => `<option value="${h}" ${f.hazard === h ? "selected" : ""}>${h} ${esc(H_TEXT[h])}</option>`).join("")}</select>
+      <select class="select" id="inv-status" aria-label="Status"><option value="">All statuses</option><option value="verified" ${f.status === "verified" ? "selected" : ""}>Verified</option><option value="action" ${f.status === "action" ? "selected" : ""}>Needs action</option></select>
+      ${anyFilter ? `<button class="btn-link" id="clear-filters">Clear filters</button>` : ""}
+    </div>
+    <p class="small muted" style="margin:0 0 var(--space-2)">Showing <span class="num">${rows.length}</span> of <span class="num">${state.products.length}</span> products</p>
+    <div class="card">${rows.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>Product</th><th>Supplier</th><th>Signal word</th><th>H codes</th><th>Pictograms</th><th>SDS date</th><th>Status</th></tr></thead><tbody>
+      ${rows.map(p => { const s = productStatus(p); return `<tr class="clickable" data-product="${p.id}" tabindex="0"><td><strong style="font-weight:500">${esc(p.name)}</strong></td><td>${esc(p.supplier)}</td><td>${signalBadge(p.signal)}</td>
+        <td class="code nowrap">${p.h.length ? p.h.join(" ") : `<span class="muted" style="font-family:var(--font-sans)">Not classified</span>`}</td><td class="nowrap">${p.picto.map(c => `<span title="${c} ${PICTO[c]}" class="picto">${`<span class="picto-diamond" aria-hidden="true"><span>${c.slice(3)}</span></span>`}${c}</span>`).join("") || `<span class="muted">—</span>`}</td>
+        <td class="nowrap num">${fmtDate(p.rev)}</td><td>${pill(s.kind, s.label)}</td></tr>`; }).join("")}</tbody></table></div>`
+      : `<div class="empty"><p>No products match your search.</p><button class="btn btn-secondary" id="clear-filters">Clear filters to see all ${state.products.length} products</button></div>`}</div>${FOOTER}`;
+}
+
+/* ---------- S5 Product record ---------- */
+function renderProduct() {
+  const p = state.products.find(x => x.id === state.route.productId);
+  if (!p) return emptyState("Could not load this product", "Go back to the inventory and try again.", "Back to inventory", "inventory");
+  const built = buildFromProduct(p); built.file = p.file;
+  const f = built.fields[state.record.active];
+  const s = productStatus(p);
+  return `<button class="back" data-nav="inventory">← Inventory</button>` +
+    pageHead(`${esc(p.name)} · <span class="muted" style="font-weight:400">${esc(p.supplier)}</span>`,
+      `Approved by ${esc(p.approvedBy)} on ${fmtDate(p.approvedAt)} · SDS revision date ${fmtDate(p.rev)} · Source: ${esc(p.file)}`,
+      `<button class="btn btn-secondary" data-nav="upload">Upload newer SDS</button><button class="btn btn-secondary" id="reopen" ${p.reopened ? "disabled" : ""}>Reopen review</button>`) + `
+    <div class="summary-strip" style="margin:-8px 0 var(--space-4)">${pill(s.kind, s.label)}${flagsFor(p).slice(1).map(x => pill("review", x.label)).join("")}${p.note ? `<span class="small muted">Note: ${esc(p.note)}</span>` : ""}</div>
+    <div class="split split-record">
+      <div class="card"><div class="table-wrap"><table class="data"><thead><tr><th>Field</th><th>Value</th><th class="num">Page</th><th>Check</th><th>Status</th></tr></thead><tbody>
+      ${built.fields.map((x, i) => `<tr class="clickable ${i === state.record.active ? "selected" : ""}" data-recfield="${i}" tabindex="0">
+        <td class="nowrap">${esc(x.label)}</td><td>${displayValue(x)}</td><td class="num">${x.page || "—"}</td><td class="small nowrap">${checkLabel(x)}</td>
+        <td>${x.status === "missing" ? pill("missing", "Missing") : pill("verified", x.edited ? "Verified · edited" : "Verified")}</td></tr>`).join("")}
+      </tbody></table></div></div>
+      ${viewer(built, f, "record")}
+    </div>${FOOTER}`;
+}
+function checkLabel(f) {
+  if (f.status === "missing") return `<span class="muted">—</span>`;
+  if (f.key.startsWith("cas")) return "Quote found · check digit OK";
+  if (f.key === "h") return "Quote found · format OK";
+  if (f.key === "rev") return "Quote found · date OK";
+  return "Quote found";
+}
+
+/* ---------- S6 Needs action ---------- */
+function renderAction() {
+  const flags = allFlags();
+  const types = { all: "All", old: "SDS too old", cas: "Missing CAS", sections: "Missing sections", unreadable: "Unreadable file" };
+  const count = t => t === "all" ? flags.length : flags.filter(f => f.type === t).length;
+  const rows = state.flagFilter === "all" ? flags : flags.filter(f => f.type === state.flagFilter);
+  return pageHead("Needs action", `Fix these before your monthly report. <span class="num">${flags.length}</span> open.`) +
+    `<div class="tabs" role="tablist">${Object.keys(types).map(k => `<button type="button" role="tab" data-flagfilter="${k}" aria-selected="${state.flagFilter === k}">${types[k]} <span class="count ${count(k) ? "count-review" : ""}">${count(k)}</span></button>`).join("")}</div>
+    <div class="card">${!flags.length ? `<div class="empty"><h2>Nothing needs action</h2><p>Your inventory data is complete.</p></div>`
+    : `<div class="table-wrap"><table class="data"><thead><tr><th>Product or file</th><th>Problem</th><th>Detail</th><th>Action</th></tr></thead><tbody>
+      ${rows.map(flagRow).join("")}</tbody></table></div>`}</div>
+    <p class="footer-note">Flags close by themselves when the cause is fixed, for example when a newer SDS is approved. They cannot be dismissed, but you can add a note for your auditor.</p>`;
+}
+function flagRow(f) {
+  if (f.type === "unreadable") return `<tr><td style="overflow-wrap:anywhere">${esc(f.doc.file)}</td><td>${pill("missing", f.label)}</td><td class="small">${esc(f.detail)}</td>
+    <td><div class="row"><button class="btn btn-secondary btn-sm" data-retry="${f.doc.id}">Retry</button><button class="btn btn-danger btn-sm" data-remove="${f.doc.id}">Remove</button></div></td></tr>`;
+  const p = f.product;
+  const action = f.type === "old" ? `<button class="btn btn-secondary btn-sm" data-nav="upload">Upload newer SDS</button>`
+    : `<div class="row"><button class="btn btn-secondary btn-sm" data-product="${p.id}">Open record</button>${f.type === "cas" ? `<button class="btn btn-secondary btn-sm" data-note="${p.id}">${p.note ? "Edit note" : "Add note"}</button>` : ""}</div>`;
+  return `<tr><td><strong style="font-weight:500">${esc(p.name)}</strong><div class="xs muted">${esc(p.supplier)}</div></td><td>${pill("review", f.label)}</td>
+    <td class="small">${esc(f.detail)}${f.type === "cas" && p.note ? `<div class="xs muted">Note: ${esc(p.note)}</div>` : ""}</td><td>${action}</td></tr>`;
+}
+
+/* ---------- S7 Export dialog ---------- */
+function openExport() {
+  const waiting = docsToReview().length + state.docs.filter(d => d.status === "processing").length;
+  const flagged = state.products.filter(p => flagsFor(p).length).length;
+  const n = state.products.length;
+  const warn = [];
+  if (waiting) warn.push(`${waiting} document${waiting > 1 ? "s are" : " is"} still waiting for review. ${waiting > 1 ? "They" : "It"} will not be in this export.`);
+  if (flagged) warn.push(`${flagged} product${flagged > 1 ? "s have" : " has"} open action flags. They are listed on a separate "Flags" sheet.`);
+  showDialog(`
+    <div class="dialog-head"><h2 id="dlg-title">Export chemical inventory list</h2></div>
+    <div class="dialog-body">
+      <div><label class="field-label" for="exp-month">Month</label><select class="select" id="exp-month" style="width:100%"><option>October 2026</option><option>September 2026</option></select></div>
+      <div><label class="field-label" for="exp-template">Template</label><select class="select" id="exp-template" style="width:100%"><option>${esc(state.settings.template)}</option></select>
+        <div class="help">The real columns depend on your solution provider. More templates will be added for pilot facilities.</div></div>
+      ${warn.length ? `<div><div class="field-label">Before you export</div><ul class="warn-list">${warn.map(w => `<li>⚠ ${esc(w)}</li>`).join("")}</ul></div>` : ""}
+      <p style="margin:0">Includes <strong class="num">${n}</strong> approved product${n === 1 ? "" : "s"}.</p>
+      <div id="export-result"></div>
+    </div>
+    <div class="dialog-foot"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="do-export" ${n ? "" : "disabled"}>Download Excel</button></div>`);
+}
+function exportPreview() {
+  const month = document.getElementById("exp-month").value;
+  const ym = month.startsWith("Oct") ? "2026-10" : "2026-09";
+  const fname = `ChemReady_CIL_${state.settings.facility.replace(/\s+/g, "")}_${ym}.xlsx`;
+  const rows = state.products.flatMap(p => p.ingredients.map(i => [p.name, p.supplier, fmtDate(p.rev), p.signal || "—", p.h.join(" ") || "—", i.name, i.cas || "Not disclosed", i.pct]));
+  document.getElementById("export-result").innerHTML = `
+    <div class="notice" style="margin:0"><span aria-hidden="true">✓</span><span>Prototype: the real app downloads <strong>${esc(fname)}</strong>. Below is a preview of the first sheet.</span></div>
+    <div class="table-wrap card" style="margin-top:var(--space-3);max-height:240px;overflow:auto"><table class="data"><thead><tr>${["Product name", "Supplier", "SDS revision date", "Signal word", "H codes", "Substance", "CAS number", "Concentration"].map(h => `<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.slice(0, 8).map(r => `<tr>${r.map(c => `<td class="nowrap">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="xs muted" style="margin:var(--space-2) 0 0">${rows.length} rows (one per ingredient) · second sheet "Flags" lists ${allFlags().length} open flags</p>`;
+}
+
+/* ---------- S8 Settings ---------- */
+function renderSettings() {
+  const s = state.settings;
+  return pageHead("Settings", "Set your facility rules once.") + `
+    <div class="card card-pad"><form class="form" id="settings-form" novalidate>
+      <div><label class="field-label" for="set-facility">Facility name</label><input class="input" style="width:100%" id="set-facility" value="${esc(s.facility)}"><div class="help">Shown on exports.</div></div>
+      <div><label class="field-label" for="set-location">Location</label><input class="input" style="width:100%" id="set-location" value="${esc(s.location)}"><div class="help">For example Gazipur.</div></div>
+      <div><label class="field-label" for="set-provider">Solution provider</label><input class="input" style="width:100%" id="set-provider" value="${esc(s.provider)}" placeholder="The tool you upload your CIL to"><div class="help">The tool you upload your CIL to.</div></div>
+      <div><label class="field-label" for="set-template">Export template</label><select class="select" style="width:100%" id="set-template"><option>${esc(s.template)}</option></select><div class="help">More templates will be added for pilot facilities.</div></div>
+      <div><label class="field-label" for="set-age">SDS maximum age (years)</label><input class="input" id="set-age" type="number" min="1" max="10" step="1" value="${s.maxAge}" style="width:120px">
+        <div class="help">SDS files older than this are flagged as too old. Try 2 or 5 and watch Needs action change.</div><div class="error-text" id="age-error" hidden>Enter a whole number of years from 1 to 10.</div></div>
+      <div><span class="field-label">Processing mode</span><div class="readonly"><strong>Local model.</strong> Set by your administrator. Private factory files are never sent to a free AI service.</div></div>
+      <div><button class="btn btn-primary" type="submit">Save settings</button></div>
+    </form></div>`;
+}
+
+/* ---------- Dialogs and toasts ---------- */
+let lastFocus = null;
+function showDialog(html) {
+  lastFocus = document.activeElement;
+  const root = document.getElementById("dialog-root");
+  root.innerHTML = `<div class="overlay" data-overlay><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">${html}</div></div>`;
+  const first = root.querySelector("select, input, button.btn-primary, button");
+  first && first.focus();
+}
+function closeDialog() { document.getElementById("dialog-root").innerHTML = ""; lastFocus && lastFocus.focus && lastFocus.focus(); }
+function confirmDialog(title, text, okLabel, danger, onOk) {
+  showDialog(`<div class="dialog-head"><h2 id="dlg-title">${title}</h2></div><div class="dialog-body"><p style="margin:0">${text}</p></div>
+    <div class="dialog-foot"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="dlg-ok">${okLabel}</button></div>`);
+  document.getElementById("dlg-ok").onclick = () => { closeDialog(); onOk(); };
+}
+function noteDialog(p) {
+  showDialog(`<div class="dialog-head"><h2 id="dlg-title">Note for ${esc(p.name)}</h2></div>
+    <div class="dialog-body"><div><label class="field-label" for="note-text">Note</label><textarea class="input" id="note-text" rows="3" style="width:100%" placeholder="For example: supplier says CAS is a trade secret, asked on 9 Oct">${esc(p.note || "")}</textarea>
+    <div class="help">Kept with this flag for your auditor. The flag stays open.</div></div></div>
+    <div class="dialog-foot"><button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" id="dlg-ok">Save note</button></div>`);
+  document.getElementById("dlg-ok").onclick = () => { p.note = document.getElementById("note-text").value.trim(); closeDialog(); toast("Note saved."); render(); };
+}
+function toast(msg, isError) {
+  const el = document.createElement("div");
+  el.className = "toast" + (isError ? " toast-error" : "");
+  el.textContent = msg;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(() => el.remove(), isError ? 7000 : 5000);
+}
+
+/* ---------- Render + events ---------- */
+function render() {
+  renderNav();
+  const r = state.route.name;
+  const html = r === "upload" ? renderUpload() : r === "documents" ? renderDocuments() : r === "review" ? renderReview()
+    : r === "product" ? renderProduct() : r === "action" ? renderAction() : r === "settings" ? renderSettings() : renderInventory();
+  const main = document.getElementById("main");
+  const focusId = document.activeElement && document.activeElement.id;
+  const caret = document.activeElement && document.activeElement.selectionStart;
+  main.innerHTML = html;
+  if (focusId && ["inv-q"].includes(focusId)) { const el = document.getElementById(focusId); el.focus(); try { el.setSelectionRange(caret, caret); } catch (e) {} }
+  bindScreen();
+}
+function bindScreen() {
+  const dz = document.getElementById("dropzone");
+  if (dz) {
+    const input = document.getElementById("file-input");
+    document.getElementById("choose").onclick = () => input.click();
+    input.onchange = () => addFiles(input.files);
+    document.getElementById("sample-batch").onclick = sampleBatch;
+    ["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add("dragging"); }));
+    ["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove("dragging"); }));
+    dz.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+  }
+  const q = document.getElementById("inv-q");
+  if (q) {
+    q.oninput = () => { state.inv.q = q.value; render(); };
+    document.getElementById("inv-supplier").onchange = e => { state.inv.supplier = e.target.value; render(); };
+    document.getElementById("inv-hazard").onchange = e => { state.inv.hazard = e.target.value; render(); };
+    document.getElementById("inv-status").onchange = e => { state.inv.status = e.target.value; render(); };
+  }
+  const sf = document.getElementById("settings-form");
+  if (sf) sf.onsubmit = e => {
+    e.preventDefault();
+    const age = Number(document.getElementById("set-age").value);
+    const err = document.getElementById("age-error");
+    if (!Number.isInteger(age) || age < 1 || age > 10) { err.hidden = false; document.getElementById("set-age").focus(); return; }
+    err.hidden = true;
+    Object.assign(state.settings, { facility: document.getElementById("set-facility").value.trim() || state.settings.facility,
+      location: document.getElementById("set-location").value.trim(), provider: document.getElementById("set-provider").value.trim(), maxAge: age });
+    toast("Settings saved. Action flags updated."); render();
+  };
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button, tr[data-product], tr[data-recfield], .field, [data-overlay]");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.overlay !== undefined && e.target === t) return closeDialog();
+  if (d.close !== undefined) return closeDialog();
+  if (d.nav) return go(d.nav);
+  if (d.review) return go("review", { reviewKey: d.review });
+  if (d.product) return go("product", { productId: d.product });
+  if (d.docfilter) { state.docFilter = d.docfilter; return render(); }
+  if (d.flagfilter) { state.flagFilter = d.flagfilter; return render(); }
+  if (d.recfield) { state.record.active = Number(d.recfield); return render(); }
+  if (d.act) { e.stopPropagation(); return resolveField(Number(d.idx), d.act); }
+  if (d.canceledit !== undefined) { state.review.editing = null; state.review.editError = ""; return render(); }
+  if (d.page && d.pmode) {
+    const want = Number(d.page);
+    if (d.pmode === "review") { const r = state.reviews[state.route.reviewKey]; const i = r.fields.findIndex(f => f.page === want); if (i >= 0) state.review.active = i; }
+    else { const p = state.products.find(x => x.id === state.route.productId); const i = buildFromProduct(p).fields.findIndex(f => f.page === want); if (i >= 0) state.record.active = i; }
+    return render();
+  }
+  if (d.retry) { const doc = state.docs.find(x => x.id === d.retry); doc.outcome = "failed"; doc.waitAt = -1; startProcessing(doc); toast(`Retrying ${doc.file}…`); return render(); }
+  if (d.remove) {
+    const doc = state.docs.find(x => x.id === d.remove);
+    return confirmDialog("Remove this file?", `${esc(doc.file)} will be removed from ChemReady. This does not affect your inventory.`, "Remove file", true,
+      () => { state.docs = state.docs.filter(x => x !== doc); toast("File removed."); render(); });
+  }
+  if (d.note) return noteDialog(state.products.find(x => x.id === d.note));
+  if (t.id === "approve-product") return approveProduct();
+  if (t.id === "open-export") return openExport();
+  if (t.id === "do-export") return exportPreview();
+  if (t.id === "clear-filters") { state.inv = { q: "", supplier: "", hazard: "", status: "" }; return render(); }
+  if (t.id === "reset-demo") { resetState(); toast("Demo reset."); return go("inventory"); }
+  if (t.id === "reopen") {
+    const p = state.products.find(x => x.id === state.route.productId);
+    return confirmDialog("Reopen review?", "This product stays in the inventory but shows Needs review until you approve it again.", "Reopen review", false, () => {
+      p.reopened = true;
+      const key = "reopen-" + p.id;
+      state.reviews[key] = Object.assign({ product: clone(p), productId: p.id }, buildFromProduct(p));
+      state.docs.unshift({ id: "d" + (state.nextId++), file: p.file, status: "review", uploaded: "2026-10-09", reviewKey: key });
+      toast("Review reopened. It is waiting in Documents."); render();
+    });
+  }
+  if (t.classList.contains("field") && d.mode === "review") {
+    if (e.target.closest("form, input")) return;
+    state.review.active = Number(d.field); return render();
+  }
+});
+document.addEventListener("submit", e => {
+  const form = e.target.closest("[data-editform]");
+  if (!form) return;
+  e.preventDefault();
+  saveEdit(Number(form.dataset.editform), document.getElementById("edit-input").value);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("dialog-root").innerHTML) return closeDialog();
+  const tr = e.target.closest && e.target.closest("tr[data-product], tr[data-recfield]");
+  if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tr.click(); return; }
+  if (state.route.name !== "review" || document.getElementById("dialog-root").innerHTML) return;
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+  const r = state.reviews[state.route.reviewKey];
+  const order = orderedFields(r).map(f => r.fields.indexOf(f));
+  const pos = order.indexOf(state.review.active);
+  const k = e.key.toLowerCase();
+  if (k === "j" || k === "k") { const n = order[Math.min(order.length - 1, Math.max(0, pos + (k === "j" ? 1 : -1)))]; state.review.active = n; render(); }
+  else if (k === "a") resolveField(state.review.active, "approve");
+  else if (k === "e") resolveField(state.review.active, "edit");
+  else if (k === "m") resolveField(state.review.active, "missing");
+  else return;
+  e.preventDefault();
+});
+
+resetState();
+const startHash = (location.hash || "").slice(1);
+go(["upload", "documents", "inventory", "action", "settings"].includes(startHash) ? startHash : "inventory");
+</script>
