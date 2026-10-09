@@ -68,13 +68,7 @@
 html, body { height: 100%; }
 body {
   margin: 0; color: var(--color-text);
-  background:
-    radial-gradient(900px 560px at 92% -6%, var(--wash-1) 0%, transparent 64%),
-    radial-gradient(800px 520px at -8% 22%, var(--wash-2) 0%, transparent 62%),
-    radial-gradient(760px 480px at 55% 92%, var(--wash-3) 0%, transparent 62%),
-    radial-gradient(520px 360px at 30% 55%, rgba(219, 234, 254, 0.55) 0%, transparent 70%),
-    var(--color-page);
-  background-attachment: fixed;
+  background: #FFFFFF; /* plain white page, by request: no colour wash */
   font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -100,6 +94,7 @@ svg.icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentCol
 
 /* ---------- Landing ---------- */
 .landing { min-height: calc(100% - var(--banner-height)); }
+.landing:focus { outline: none; } /* focus moves here on page change for screen readers; no visible ring needed */
 .glass { background: var(--glass-card); -webkit-backdrop-filter: var(--glass-card-blur); backdrop-filter: var(--glass-card-blur); border: 1px solid var(--glass-border); box-shadow: var(--glass-highlight), var(--glass-card-shadow); }
 .l-wrap { max-width: 1120px; margin: 0 auto; padding-inline: var(--space-5); }
 .l-top-wrap { position: sticky; top: calc(var(--banner-height) + 12px); z-index: 10; padding-inline: var(--space-4); margin-top: 12px; }

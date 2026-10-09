@@ -90,7 +90,8 @@
   --content-max: 1280px;  /* page content width */
 
   /* Glass: every card, the navigation pill, dialogs and the website. Cards are 58%
-     white over a soft wash; all text still passes WCAG AA (checked by script). */
+     white on a plain white page, so they read as soft white cards with a
+     border, top highlight and shadow. All text passes WCAG AA. */
   --glass-nav: rgba(255, 255, 255, 0.72);
   --glass-card: rgba(255, 255, 255, 0.58);
   --glass-menu: #FFFFFF;  /* menus inside the top bar must be solid */
@@ -99,9 +100,7 @@
   --glass-blur: saturate(180%) blur(18px);
   --glass-card-blur: saturate(180%) blur(20px);
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --wash-1: #DBEAFE;      /* soft background wash behind glass */
-  --wash-2: #E0E7FF;
-  --wash-3: #ECFDF5;
+  /* Page background is plain white (#FFFFFF). No colour wash. */
   --row-height: 40px;
   --min-app-width: 1280px;
 }

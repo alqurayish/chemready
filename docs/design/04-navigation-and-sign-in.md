@@ -122,3 +122,10 @@ Invite only is simpler and safer for the first 2 pilots; open sign up can follow
 - Every card is glass: 58% white, 20 px blur, a white top highlight and a soft
   blue shadow, over a gentle colour wash.
 - Muted text darkened from #64748B to #58677D so it stays above 4.5:1 on glass.
+
+## Refinement 5: plain white background
+
+The page background is plain white everywhere (website and app). The colour
+wash is removed. Cards keep their glass treatment (translucent white, blur,
+white top highlight, soft shadow); on white they read as soft, raised white
+cards.
