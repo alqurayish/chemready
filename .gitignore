@@ -34,3 +34,6 @@ data/private/
 evals/pdfs/
 evals/runs/
 evals/synthetic/
+
+# Local app data (database and uploaded files)
+data/

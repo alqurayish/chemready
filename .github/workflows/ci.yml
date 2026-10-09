@@ -82,3 +82,22 @@ jobs:
           uv run python -m chemready.evals.run_extraction --gold evals/gold --pdfs evals/pdfs --out evals/runs/ci --limit 5
           uv run python -m chemready.evals.run_evals --gold evals/gold --pdfs evals/pdfs --predictions evals/runs/ci \
             --limit 5 --gate --baseline evals/baselines/real.json --details
+
+  docker:
+    name: Docker image builds
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build the image (not pushed anywhere)
+        run: docker build -t chemready:ci .
+
+      - name: Start it and check the health endpoint
+        run: |
+          docker run -d --name app -p 7860:7860 -e CHEMREADY_LLM_PROVIDER=rules -e CHEMREADY_DEMO=true \
+            -e CHEMREADY_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" chemready:ci
+          for i in $(seq 1 30); do curl -fsS localhost:7860/healthz && exit 0; sleep 2; done
+          docker logs app; exit 1
