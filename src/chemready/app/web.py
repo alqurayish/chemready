@@ -552,9 +552,15 @@ def actions_page(request: Request, s: State, user: PageUser, kind: str = "all") 
     )
 
 
+def _usage(s: AppState, user: Row) -> Row:
+    from chemready.app.observability import usage_summary
+
+    return usage_summary(s.store, user["facility_id"], f"{s.today():%Y-%m}-01")
+
+
 @router.get("/app/settings", response_class=HTMLResponse)
 def settings_page(request: Request, s: State, user: PageUser) -> HTMLResponse:
-    return render(request, "settings.html", s, user, active="settings", error=None)
+    return render(request, "settings.html", s, user, active="settings", error=None, usage=_usage(s, user))
 
 
 @router.post("/app/settings")
@@ -575,6 +581,7 @@ def settings_submit(
             user,
             active="settings",
             error="Enter a whole number of years from 1 to 10.",
+            usage=_usage(s, user),
         )
     s.store.update_facility(
         user["facility_id"],

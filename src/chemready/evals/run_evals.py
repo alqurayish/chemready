@@ -31,9 +31,13 @@ def load_pdf(pdf_folder: Path, file_name: str) -> ParsedDocument | None:
 
 
 def evaluate(
-    gold_folder: Path, pdf_folder: Path, predictions_folder: Path, price: tuple[float, float] | None
+    gold_folder: Path,
+    pdf_folder: Path,
+    predictions_folder: Path,
+    price: tuple[float, float] | None,
+    limit: int | None = None,
 ) -> tuple[EvalSummary, list[DocumentScore]]:
-    gold = load_gold(gold_folder)
+    gold = load_gold(gold_folder)[:limit]
     if not gold:
         raise SystemExit(f"No gold records found in {gold_folder}")
     predictions = load_predictions(predictions_folder)
@@ -57,6 +61,20 @@ def meets_targets(summary: EvalSummary) -> dict[str, bool]:
 
 def _pct(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.1%}"
+
+
+def regressions(summary: EvalSummary, baseline: dict[str, float], max_drop: float) -> list[str]:
+    """Problems compared with the last accepted run. Hallucinations are never allowed."""
+    problems = []
+    for metric in ("field_accuracy", "code_recall"):
+        if metric in baseline and getattr(summary, metric) < baseline[metric] - max_drop:
+            now = getattr(summary, metric)
+            problems.append(
+                f"{metric} fell from {baseline[metric]:.1%} to {now:.1%} (allowed drop {max_drop:.0%})"
+            )
+    if summary.hallucination_rate > 0:
+        problems.append(f"hallucination rate is {summary.hallucination_rate:.1%}; it must be 0%")
+    return problems
 
 
 def format_table(summary: EvalSummary) -> str:
@@ -94,12 +112,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--log", type=Path, help="Append the summary as one JSON line to this file")
     parser.add_argument("--details", action="store_true", help="Print every error per document")
     parser.add_argument("--gate", action="store_true", help="Exit with code 1 if any target is missed")
+    parser.add_argument(
+        "--baseline", type=Path, help="With --gate: compare with this accepted run instead of the targets"
+    )
+    parser.add_argument(
+        "--max-drop", type=float, default=0.02, help="With --baseline: allowed drop, default 0.02"
+    )
+    parser.add_argument("--limit", type=int, help="Only the first N gold files (CI uses a 5-file subset)")
     args = parser.parse_args(argv)
 
     price = (
         (args.price_in, args.price_out) if args.price_in is not None and args.price_out is not None else None
     )
-    summary, scores = evaluate(args.gold, args.pdfs, args.predictions, price)
+    summary, scores = evaluate(args.gold, args.pdfs, args.predictions, price, args.limit)
 
     print(format_table(summary))
     if args.details:
@@ -116,7 +141,15 @@ def main(argv: list[str] | None = None) -> int:
         with args.log.open("a", encoding="utf-8") as log:
             log.write(json.dumps(entry) + "\n")
 
-    if args.gate and not all(meets_targets(summary).values()):
+    if args.gate and args.baseline:
+        problems = regressions(summary, json.loads(args.baseline.read_text(encoding="utf-8")), args.max_drop)
+        for problem in problems:
+            print(f"Eval gate: {problem}")
+        if problems:
+            print("Eval gate failed: the results got worse than the accepted baseline.")
+            return 1
+        print("Eval gate passed: no drop against the baseline.")
+    elif args.gate and not all(meets_targets(summary).values()):
         print("Eval gate failed: at least one target was missed.")
         return 1
     return 0

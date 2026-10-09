@@ -1,0 +1,5 @@
+{
+  "note": "Accepted results of the rules baseline on the fictional set. A software regression check, not an accuracy claim.",
+  "field_accuracy": 1.0,
+  "code_recall": 1.0
+}

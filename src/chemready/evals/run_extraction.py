@@ -17,9 +17,11 @@ from chemready.extraction.llm import LlmClient, LlmError, make_client
 from chemready.pdf.parse import PdfError, parse_pdf
 
 
-def run(gold_folder: Path, pdf_folder: Path, out_folder: Path, client: LlmClient) -> list[Prediction]:
+def run(
+    gold_folder: Path, pdf_folder: Path, out_folder: Path, client: LlmClient, limit: int | None = None
+) -> list[Prediction]:
     predictions = []
-    for record in load_gold(gold_folder):
+    for record in load_gold(gold_folder)[:limit]:
         start = time.perf_counter()
         try:
             document = parse_pdf(pdf_folder / record.file)
@@ -53,8 +55,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--gold", type=Path, required=True)
     parser.add_argument("--pdfs", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True, help="Folder for this run, e.g. evals/runs/v1")
+    parser.add_argument("--limit", type=int, help="Only the first N gold files")
     args = parser.parse_args(argv)
-    run(args.gold, args.pdfs, args.out, make_client(get_settings()))
+    run(args.gold, args.pdfs, args.out, make_client(get_settings()), args.limit)
     return 0
 
 

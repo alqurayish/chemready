@@ -121,8 +121,19 @@ def _to_new_fields(checks: list[Any], extraction: Any) -> list[NewField]:
     return fields
 
 
-def process_document(store: Store, document_id: int, make_client: Callable[[], LlmClient]) -> None:
-    """Parse, extract and validate one document. Errors become a clear 'failed' status."""
+def process_document(
+    store: Store,
+    document_id: int,
+    make_client: Callable[[], LlmClient],
+    prices: tuple[float, float] = (0.0, 0.0),
+) -> None:
+    """Parse, extract and validate one document. Errors become a clear 'failed' status.
+
+    The model client is wrapped so every call is traced with tokens, time and cost.
+    """
+    from chemready.app.observability import TracedClient
+    from chemready.extraction.prompts import PROMPT_VERSION
+
     document = store.document_any_facility(document_id)
     if document is None:
         return
@@ -133,7 +144,16 @@ def process_document(store: Store, document_id: int, make_client: Callable[[], L
         missing = missing_sections(split_sections(parsed))
         store.update_document_meta(document_id, parsed.page_count, parsed.is_scanned, missing)
         store.set_status(document_id, "extracting", "Extracting")
-        run = extract_sds(parsed, make_client(), private=bool(document["is_private"]))
+        client = TracedClient(
+            make_client(),
+            store,
+            facility_id=document["facility_id"],
+            document_id=document_id,
+            prompt_version=PROMPT_VERSION,
+            price_in=prices[0],
+            price_out=prices[1],
+        )
+        run = extract_sds(parsed, client, private=bool(document["is_private"]))
         store.set_status(document_id, "extracting", "Checking")
         checks = validate_extraction(run.extraction, parsed)
         meta = {
@@ -167,9 +187,12 @@ class Worker:
     when the server stopped are picked up again at start-up.
     """
 
-    def __init__(self, store: Store, make_client: Callable[[], LlmClient]):
+    def __init__(
+        self, store: Store, make_client: Callable[[], LlmClient], prices: tuple[float, float] = (0.0, 0.0)
+    ):
         self.store = store
         self.make_client = make_client
+        self.prices = prices
         self.jobs: queue.Queue[int | None] = queue.Queue()
         self.thread = threading.Thread(target=self._loop, name="chemready-worker", daemon=True)
 
@@ -187,7 +210,7 @@ class Worker:
 
     def _loop(self) -> None:
         while (document_id := self.jobs.get()) is not None:
-            process_document(self.store, document_id, self.make_client)
+            process_document(self.store, document_id, self.make_client, self.prices)
 
 
 # ---------- Review ----------

@@ -50,12 +50,13 @@ class AppState:
         self.client_factory = client_factory
         self.inline = inline
         self.throttle = auth.SignInThrottle.create()
-        self.worker = Worker(store, client_factory)
+        self.prices = (settings.price_input_per_million, settings.price_output_per_million)
+        self.worker = Worker(store, client_factory, self.prices)
         self.today: Callable[[], date] = date.today
 
     def enqueue(self, document_id: int) -> None:
         if self.inline:
-            process_document(self.store, document_id, self.client_factory)
+            process_document(self.store, document_id, self.client_factory, self.prices)
         else:
             self.worker.submit(document_id)
 
@@ -161,6 +162,9 @@ def create_app(
         if not inline_processing:
             app_state.worker.stop()
 
+    from chemready.app.observability import RequestIdMiddleware, request_id, setup_logging, usage_summary
+
+    setup_logging(settings.log_format, settings.log_level)
     app = FastAPI(title="ChemReady", version=__version__, lifespan=lifespan)
     app.state.chemready = app_state
     secret = settings.secret_key.get_secret_value() if settings.secret_key else secrets.token_urlsafe(48)
@@ -172,6 +176,20 @@ def create_app(
         https_only=settings.environment == "production",
         max_age=60 * 60 * 12,
     )
+
+    app.add_middleware(RequestIdMiddleware)
+
+    @app.exception_handler(Exception)
+    async def unexpected_error(request: Request, error: Exception) -> Response:
+        """Never show a stack trace. Log it with the request id and show a calm message with that id."""
+        rid = request_id.get()
+        log.error("unexpected error", exc_info=error, extra={"path": request.url.path})
+        message = f"Something went wrong on our side. Please try again. Reference: {rid}"
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=500, content={"detail": message, "request_id": rid})
+        return Response(
+            f"<h1>Sorry</h1><p>{message}</p><p><a href='/'>Back</a></p>", 500, media_type="text/html"
+        )
 
     @app.exception_handler(ServiceError)
     async def service_error(_: Request, error: ServiceError) -> JSONResponse:
@@ -379,6 +397,11 @@ def create_app(
     def put_facility(body: SettingsBody, user: User, s: State) -> Row | None:
         s.store.update_facility(user["facility_id"], **body.model_dump())
         return s.store.facility(user["facility_id"])
+
+    @app.get("/api/usage")
+    def usage(user: User, s: State) -> Row:
+        """Model calls, tokens and cost this month for the signed-in facility."""
+        return usage_summary(s.store, user["facility_id"], f"{s.today():%Y-%m}-01")
 
     @app.get("/api/export.xlsx")
     def export(user: User, s: State) -> Response:

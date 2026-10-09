@@ -115,6 +115,25 @@ CREATE TABLE IF NOT EXISTS hazard (
     pictogram TEXT
 );
 
+CREATE TABLE IF NOT EXISTS model_call (
+    id INTEGER PRIMARY KEY,
+    facility_id INTEGER REFERENCES facility(id),
+    document_id INTEGER,
+    trace_id TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    prompt_version TEXT,
+    input_tokens INTEGER NOT NULL DEFAULT 0,
+    output_tokens INTEGER NOT NULL DEFAULT 0,
+    latency_ms REAL NOT NULL DEFAULT 0,
+    attempts INTEGER NOT NULL DEFAULT 1,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    ok INTEGER NOT NULL,
+    error TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_model_call_facility ON model_call(facility_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_document_facility ON sds_document(facility_id, status);
 CREATE INDEX IF NOT EXISTS idx_field_sds ON field_value(sds_id);
 CREATE INDEX IF NOT EXISTS idx_product_facility ON chemical_product(facility_id);

@@ -11,4 +11,9 @@
   <div><span class="field-label">Processing mode</span><div class="readonly"><strong>{{ settings.llm_provider|capitalize }}.</strong> Set by your administrator in the server settings. Private factory files are never sent to a free AI service.</div></div>
   <div><button class="btn btn-primary" type="submit">Save settings</button></div>
 </form></div>
+<div class="card" style="margin-top:var(--space-4)"><h2 class="section-title">AI usage this month</h2>
+  <dl class="kv"><dt>Model calls</dt><dd class="num">{{ usage.calls }}{% if usage.failed %} ({{ usage.failed }} failed){% endif %}</dd>
+    <dt>Tokens in / out</dt><dd class="num">{{ usage.input_tokens }} / {{ usage.output_tokens }}</dd>
+    <dt>Average time per call</dt><dd class="num">{{ (usage.mean_latency_ms / 1000)|round(1) }} s</dd>
+    <dt>Cost</dt><dd class="num">${{ '%.4f'|format(usage.cost_usd) }}{% if not settings.price_input_per_million and not settings.price_output_per_million %} <span class="muted">(prices set to 0: local model or free tier)</span>{% endif %}</dd></dl></div>
 {% endblock %}

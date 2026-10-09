@@ -49,6 +49,15 @@ class Settings(BaseSettings):
     # Business rule R6: default for new facilities: flag SDS files older than this many years.
     sds_max_age_years: int = Field(default=3, ge=1, le=10)
 
+    # Cost tracking: USD per million tokens for the chosen model. 0 for local models and the
+    # free tier. Copy the real prices from the provider's pricing page when you pay.
+    price_input_per_million: float = Field(default=0.0, ge=0)
+    price_output_per_million: float = Field(default=0.0, ge=0)
+
+    # Logs: "json" (one JSON object per line, for log tools) or "text" (easy to read locally).
+    log_format: Literal["json", "text"] = "text"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+
     # Signs session cookies. Required in production; in development a random key is
     # made at start-up, so everyone is signed out when the server restarts.
     secret_key: SecretStr | None = None
