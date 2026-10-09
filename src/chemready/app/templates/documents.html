@@ -1,0 +1,41 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import pill %}
+{% block title %}Review · ChemReady{% endblock %}
+{% block head %}{% if processing %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
+{% block content %}
+{% set labels = {'all':'All','in_review':'Needs review','processing':'Processing','approved':'Approved','failed':'Failed'} %}
+<div class="page-head"><div><h1>Review</h1><p>Check new SDS files and follow every upload.</p></div><a class="btn btn-primary" href="/app/upload">Upload files</a></div>
+{% if processing %}<div class="notice notice-warn" role="status"><span aria-hidden="true">●</span><span>Processing {{ processing }} file{{ 's' if processing != 1 }}. You can keep working; this page updates by itself.</span></div>{% endif %}
+<div class="segmented" role="tablist">
+  {% for key, label in labels.items() %}<a role="tab" href="?tab={{ key }}" aria-selected="{{ 'true' if tab == key else 'false' }}">{{ label }} <span class="count {{ 'count-review' if key == 'in_review' and groups[key] }}">{{ groups[key]|length }}</span></a>{% endfor %}
+</div>
+<div class="card">
+{% if not groups.all %}
+  <div class="empty"><h2>No SDS files yet</h2><p>Upload your first batch to start your inventory.</p><a class="btn btn-primary" href="/app/upload">Upload files</a></div>
+{% elif not rows %}
+  <div class="empty"><p>{{ 'All caught up. Nothing waiting for review.' if tab == 'in_review' else 'No documents here.' }}</p></div>
+{% else %}
+<div class="table-wrap"><table class="data">
+  <thead><tr><th>File</th><th>Product</th><th>Status</th><th class="num">To review</th><th>Uploaded</th><th><span class="sr-only">Action</span></th></tr></thead>
+  <tbody>
+  {% for d in rows %}<tr>
+    <td style="overflow-wrap:anywhere;min-width:180px">{{ d.file_name }}</td>
+    <td>{{ d.product_name or '—' }}</td>
+    <td>
+      {% if d.status == 'in_review' %}{{ pill('review','Needs review') }}
+      {% elif d.status in ('queued','extracting') %}<div class="progress"><span class="small">{{ d.stage }}…</span><div class="bar"><div style="width:{{ {'Queued':5,'Reading pages':25,'Finding sections':45,'Extracting':70,'Checking':90}.get(d.stage, 10) }}%"></div></div></div>
+      {% elif d.status == 'failed' %}{{ pill('missing','Failed') }}<div class="xs muted" style="max-width:280px">{{ d.error }}</div>
+      {% else %}{{ pill('verified','Approved') }}{% endif %}
+    </td>
+    <td class="num">{{ d.open_reviews if d.status == 'in_review' else '—' }}</td>
+    <td class="nowrap">{{ d.uploaded_at|nice_date }}</td>
+    <td>
+      {% if d.status == 'in_review' %}<a class="btn btn-primary btn-sm" href="/app/review/{{ d.id }}">Review</a>
+      {% elif d.status == 'failed' %}<div class="row"><form class="inline-form" method="post" action="/app/review/{{ d.id }}/retry"><button class="btn btn-secondary btn-sm">Retry</button></form><form class="inline-form" method="post" action="/app/review/{{ d.id }}/remove"><button class="btn btn-danger btn-sm">Remove</button></form></div>
+      {% elif d.status == 'approved' %}<a class="btn btn-secondary btn-sm" href="/app/review/{{ d.id }}">View</a>{% endif %}
+    </td>
+  </tr>{% endfor %}
+  </tbody></table></div>
+{% endif %}
+</div>
+{% endblock %}

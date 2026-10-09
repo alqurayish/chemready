@@ -1,0 +1,33 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import pill %}
+{% block title %}Actions · ChemReady{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Actions</h1><p>Fix these before your monthly report. <span class="num">{{ counts.all }}</span> open.</p></div></div>
+<div class="segmented" role="tablist">
+  {% for key, label in kinds.items() %}<a role="tab" href="?kind={{ key }}" aria-selected="{{ 'true' if kind == key else 'false' }}">{{ label }} <span class="count {{ 'count-review' if counts[key] }}">{{ counts[key] }}</span></a>{% endfor %}
+</div>
+<div class="card">
+{% if not counts.all %}<div class="empty"><h2>Nothing needs action</h2><p>Your inventory data is complete.</p></div>
+{% else %}
+<div class="table-wrap"><table class="data">
+  <thead><tr><th>Product or file</th><th>Problem</th><th>Detail</th><th>Action</th></tr></thead>
+  <tbody>{% for f in rows %}<tr>
+    {% if f.kind == 'unreadable' %}
+    <td style="overflow-wrap:anywhere">{{ f.document.file_name }}</td><td>{{ pill('missing', f.label) }}</td><td class="small">{{ f.detail }}</td>
+    <td><div class="row"><form class="inline-form" method="post" action="/app/review/{{ f.document.id }}/retry"><button class="btn btn-secondary btn-sm">Retry</button></form>
+      <form class="inline-form" method="post" action="/app/review/{{ f.document.id }}/remove"><button class="btn btn-danger btn-sm">Remove</button></form></div></td>
+    {% else %}
+    <td><strong style="font-weight:500">{{ f.product.product_name }}</strong><div class="xs muted">{{ f.product.supplier or '' }}</div></td>
+    <td>{{ pill('review', f.label) }}</td>
+    <td class="small">{{ f.detail }}{% if f.product.note %}<div class="xs muted">Note: {{ f.product.note }}</div>{% endif %}</td>
+    <td><div class="row">
+      {% if f.kind == 'old_sds' %}<a class="btn btn-secondary btn-sm" href="/app/upload">Upload newer SDS</a>{% else %}<a class="btn btn-secondary btn-sm" href="/app/products/{{ f.product.id }}">Open record</a>{% endif %}
+      <details class="edit"><summary class="btn btn-secondary btn-sm">{{ 'Edit note' if f.product.note else 'Add note' }}</summary>
+        <form method="post" action="/app/products/{{ f.product.id }}/note"><input class="input" name="note" value="{{ f.product.note }}" placeholder="Supplier says CAS is a trade secret, asked on…" style="min-width:240px"><button class="btn btn-primary btn-sm">Save note</button></form></details>
+    </div></td>
+    {% endif %}
+  </tr>{% endfor %}</tbody></table></div>
+{% endif %}
+</div>
+<p class="footer-note">Flags close by themselves when the cause is fixed, for example when a newer SDS is approved. They cannot be dismissed, but you can add a note for your auditor.</p>
+{% endblock %}

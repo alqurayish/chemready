@@ -177,6 +177,19 @@ def create_app(
     async def service_error(_: Request, error: ServiceError) -> JSONResponse:
         return JSONResponse(status_code=400, content={"detail": str(error)})
 
+    from pathlib import Path
+
+    from fastapi.staticfiles import StaticFiles
+
+    from chemready.app import web
+
+    app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
+    app.include_router(web.router)
+
+    @app.exception_handler(web.SignInRequiredError)
+    async def sign_in_required(_: Request, error: web.SignInRequiredError) -> Response:
+        return web.signin_redirect(error.next_path)
+
     @app.get("/healthz")
     def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}

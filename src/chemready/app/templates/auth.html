@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}Sign in · ChemReady{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <p style="text-align:center;margin:0 0 var(--space-5)"><a class="brand" href="/" style="color:inherit;text-decoration:none;justify-content:center"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">ChemReady</span></a></p>
+  <div class="card">
+    <div class="auth-icon">{{ icon('lock') }}</div>
+    {% if error %}<div class="notice notice-error" role="alert" style="margin-top:0">{{ error }}</div>{% endif %}
+    {% if mode == 'signin' %}
+      <h1>Sign in to ChemReady</h1>
+      <p class="lead">{{ 'Sign in to upload documents. You will go straight to the upload screen.' if next == '/app/upload' else "Open your facility's workspace." }}</p>
+      <form class="auth-form" method="post" action="/signin">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div><label class="field-label" for="email">Work email</label><input class="input" id="email" name="email" type="email" autocomplete="email" required value="{{ values.email or '' }}"></div>
+        <div><div class="label-row"><label class="field-label" for="password">Password</label><a class="small" href="/reset">Forgot password?</a></div>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required minlength="8"></div>
+        <button class="btn btn-primary btn-block" type="submit" style="height:38px">Sign in</button>
+      </form>
+      <p class="auth-switch">New to ChemReady? <a href="/signup?next={{ next|urlencode }}">Create an account</a></p>
+    {% elif mode == 'signup' %}
+      <h1>Create your account</h1>
+      <p class="lead">Your files stay private to your facility.</p>
+      <form class="auth-form" method="post" action="/signup">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div><label class="field-label" for="name">Full name</label><input class="input" id="name" name="name" autocomplete="name" required value="{{ values.name or '' }}"></div>
+        <div><label class="field-label" for="email">Work email</label><input class="input" id="email" name="email" type="email" autocomplete="email" required value="{{ values.email or '' }}"></div>
+        <div><label class="field-label" for="facility_name">Facility name</label><input class="input" id="facility_name" name="facility_name" autocomplete="organization" required value="{{ values.facility_name or '' }}"></div>
+        <div><label class="field-label" for="password">Password</label><input class="input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8"><div class="help">At least 8 characters. A long phrase is best.</div></div>
+        <button class="btn btn-primary btn-block" type="submit" style="height:38px">Create account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="/signin?next={{ next|urlencode }}">Sign in</a></p>
+    {% elif mode == 'reset' %}
+      <h1>Reset your password</h1>
+      <p class="lead">Enter your work email and we will send you a reset link.</p>
+      <form class="auth-form" method="post" action="/reset">
+        <div><label class="field-label" for="email">Work email</label><input class="input" id="email" name="email" type="email" autocomplete="email" required></div>
+        <button class="btn btn-primary btn-block" type="submit" style="height:38px">Send reset link</button>
+      </form>
+      <p class="auth-switch"><a href="/signin">Back to sign in</a></p>
+    {% elif mode == 'reset-sent' %}
+      <h1>Check your email</h1>
+      <p class="lead">If an account exists for <strong>{{ values.email }}</strong>, we have sent a link to reset your password. The link works once and expires in 30 minutes.</p>
+      <p class="auth-switch"><a href="/signin">Back to sign in</a></p>
+    {% elif mode == 'reset-confirm' %}
+      <h1>Choose a new password</h1>
+      <p class="lead">You will be signed out on every device.</p>
+      <form class="auth-form" method="post" action="/reset/confirm">
+        <input type="hidden" name="token" value="{{ token }}">
+        <div><label class="field-label" for="password">New password</label><input class="input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8"></div>
+        <button class="btn btn-primary btn-block" type="submit" style="height:38px">Change password</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

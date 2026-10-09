@@ -1,0 +1,29 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}Upload · ChemReady{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Upload SDS files</h1><p>Add up to {{ settings.max_batch_files }} PDF files at a time.</p></div>
+  <a class="btn btn-secondary" href="/app/review">Go to review</a></div>
+<form method="post" action="/app/upload" enctype="multipart/form-data">
+  <div class="dropzone">
+    <div class="drop-icon">{{ icon('upload') }}</div>
+    <h2><label for="files">Choose SDS PDF files</label></h2>
+    <p class="muted small" style="margin:0 0 var(--space-4)">PDF only · up to {{ settings.max_batch_files }} files · up to {{ settings.max_upload_mb }} MB each</p>
+    <input id="files" name="files" type="file" accept="application/pdf,.pdf" multiple required>
+    <p class="small" style="margin:var(--space-4) 0 0"><label><input type="checkbox" name="public_sds" value="true"> These are public SDS files downloaded from the supplier's website</label></p>
+    <p style="margin:var(--space-4) 0 0"><button class="btn btn-primary" type="submit">Upload and process</button></p>
+  </div>
+</form>
+{% if settings.allows_private_data %}
+<div class="notice" role="note"><span aria-hidden="true">●</span><span><strong>{{ 'Local model' if settings.llm_provider != 'gemini' else 'Paid Gemini' }}:</strong> private factory files are processed without any free AI service.</span></div>
+{% else %}
+<div class="notice notice-warn" role="note"><span aria-hidden="true">●</span><span><strong>Public test mode:</strong> files go to Google's free Gemini service. Only files ticked as public SDS are processed; private files are refused.</span></div>
+{% endif %}
+{% if results %}
+<div class="card"><div class="card-title"><h2 style="font-size:inherit;font-weight:inherit">This batch ({{ results|length }} file{{ 's' if results|length != 1 }})</h2></div>
+<ul class="batch-list">
+  {% for r in results %}<li><span class="{{ 'ok' if r.accepted else 'bad' }}" aria-hidden="true">{{ '✓' if r.accepted else '✕' }}</span>
+  <span style="flex:1 1 220px;min-width:0;overflow-wrap:anywhere">{{ r.file_name }}</span><span class="{{ 'muted' if r.accepted }}" {% if not r.accepted %}style="color:var(--color-missing-text)"{% endif %}>{{ r.message }}</span></li>{% endfor %}
+</ul></div>
+{% endif %}
+{% endblock %}

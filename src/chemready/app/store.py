@@ -113,24 +113,28 @@ class Store:
             int(private),
         )
 
+    # Documents with their open review count and the best known product name
+    # (the approved name, or the name found by extraction while still in review).
+    _DOCUMENTS = (
+        "SELECT d.*,"
+        " (SELECT COUNT(*) FROM field_value f"
+        "  WHERE f.sds_id = d.id AND f.status = 'needs_review' AND f.reviewed = 0) AS open_reviews,"
+        " COALESCE(p.product_name, (SELECT f.value FROM field_value f"
+        "  WHERE f.sds_id = d.id AND f.field_name = 'product_name')) AS product_name"
+        " FROM sds_document d LEFT JOIN chemical_product p ON p.sds_id = d.id"
+        " WHERE d.facility_id = ?"
+    )
+
     def document(self, facility_id: int, document_id: int) -> Row | None:
-        return self.one(
-            "SELECT * FROM sds_document WHERE id = ? AND facility_id = ?", document_id, facility_id
-        )
+        return self.one(self._DOCUMENTS + " AND d.id = ?", facility_id, document_id)
 
     def document_any_facility(self, document_id: int) -> Row | None:
         """Only for the background worker, which already knows the document is valid."""
         return self.one("SELECT * FROM sds_document WHERE id = ?", document_id)
 
     def documents(self, facility_id: int) -> list[Row]:
-        return self.all(
-            "SELECT d.*, (SELECT COUNT(*) FROM field_value f WHERE f.sds_id = d.id AND f.status ="
-            " 'needs_review'"
-            " AND f.reviewed = 0) AS open_reviews, p.product_name"
-            " FROM sds_document d LEFT JOIN chemical_product p ON p.sds_id = d.id"
-            " WHERE d.facility_id = ? ORDER BY d.uploaded_at DESC, d.id DESC",
-            facility_id,
-        )
+        """All documents, newest first."""
+        return self.all(self._DOCUMENTS + " ORDER BY d.uploaded_at DESC, d.id DESC", facility_id)
 
     def set_status(self, document_id: int, status: str, stage: str, error: str | None = None) -> None:
         self.run(

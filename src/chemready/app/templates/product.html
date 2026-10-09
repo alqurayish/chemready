@@ -1,0 +1,30 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import pill, field_value %}
+{% block title %}{{ product.product_name }} · ChemReady{% endblock %}
+{% block content %}
+<a class="back" href="/app/inventory">‹ Inventory</a>
+<div class="page-head"><div><h1>{{ product.product_name }} <span class="muted" style="font-weight:400">· {{ product.supplier or 'Supplier missing' }}</span></h1>
+  <p>Approved by {{ product.approved_by }} on {{ product.approved_at|nice_date }} · SDS revision date {{ product.revision_date|nice_date }} · Source: {{ product.file_name }}</p></div>
+  <div class="row"><a class="btn btn-secondary" href="/app/upload">Upload newer SDS</a>
+  <form class="inline-form" method="post" action="/app/products/{{ product.id }}/reopen"><button class="btn btn-secondary" {{ 'disabled' if product.document_status != 'approved' }}>Reopen review</button></form></div>
+</div>
+<div class="summary-strip" style="margin:-8px 0 var(--space-4)">
+  {% for f in flags %}{{ pill('review', f.label) }}{% else %}{{ pill('verified','Verified') }}{% endfor %}
+  {% if product.note %}<span class="small muted">Note: {{ product.note }}</span>{% endif %}
+</div>
+<div class="split split-record">
+  <div class="card"><div class="table-wrap"><table class="data">
+    <thead><tr><th>Field</th><th>Value</th><th class="num">Page</th><th>Checks</th><th>Reviewed</th></tr></thead>
+    <tbody>{% for f in fields %}<tr class="clickable {{ 'selected' if current and f.id == current.id }}" onclick="location.href='?field={{ f.id }}'">
+      <td class="nowrap"><a href="?field={{ f.id }}" style="color:inherit;text-decoration:none">{{ f.label }}</a></td>
+      <td>{{ field_value(f) }}</td><td class="num">{{ f.page or '—' }}</td>
+      <td class="small">{% if f.checks %}{{ f.checks.values()|select|list|length }}/{{ f.checks|length }} passed{% else %}—{% endif %}</td>
+      <td class="small">{% if f.reviewed %}{{ f.resolution|capitalize }} by {{ f.reviewed_by }}{% elif f.status == 'passed' %}Passed checks{% else %}—{% endif %}</td>
+    </tr>{% endfor %}</tbody></table></div></div>
+  <section class="card viewer" aria-label="Source PDF">
+    <div class="viewer-bar"><span>{{ product.file_name }} · Page {{ page_no }}</span></div>
+    <div class="desk"><div class="paper"><div class="ln">{{ page_html }}</div></div></div>
+  </section>
+</div>
+<p class="footer-note">ChemReady checks that your data matches your SDS files. It does not decide MRSL conformance. Use the ZDHC Gateway and your solution provider for that.</p>
+{% endblock %}

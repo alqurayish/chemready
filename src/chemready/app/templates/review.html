@@ -1,0 +1,51 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field_status, field_value %}
+{% block title %}Review {{ document.file_name }} · ChemReady{% endblock %}
+{% macro field_row(f) %}
+<div class="field {{ 'active' if current and f.id == current.id }}">
+  <a class="field-link" href="?field={{ f.id }}">
+    <div class="field-top"><span class="field-label-sm">{{ f.label }}{% if f.page %} · p.{{ f.page }}{% endif %}</span>{{ field_status(f) }}</div>
+    <div class="field-value">{{ field_value(f) }}</div>
+  </a>
+  {% if f.status == 'needs_review' and not f.reviewed %}{% for r in f.reasons %}<div class="reason reason-review">{{ r }}</div>{% endfor %}
+  {% elif f.status == 'missing' and not f.reviewed %}{% for r in f.reasons %}<div class="reason reason-missing">{{ r }}</div>{% endfor %}
+  {% elif f.reviewed %}<div class="resolved">{{ {'approved':'Approved','edited':'Edited','missing':'Marked as missing'}[f.resolution] }} by {{ f.reviewed_by }}</div>{% endif %}
+  {% if editable and ((f.status == 'needs_review' and not f.reviewed) or (current and f.id == current.id)) %}
+  <div class="field-actions">
+    {% if f.status == 'needs_review' and not f.reviewed and f.value is not none %}
+    <form method="post" action="/app/fields/{{ f.id }}"><input type="hidden" name="document_id" value="{{ document.id }}"><input type="hidden" name="action" value="approve"><button class="btn btn-secondary btn-sm">Approve</button></form>
+    {% endif %}
+    <details class="edit"><summary class="btn btn-secondary btn-sm">Edit</summary>
+      <form method="post" action="/app/fields/{{ f.id }}"><input type="hidden" name="document_id" value="{{ document.id }}"><input type="hidden" name="action" value="edit">
+        <label class="sr-only" for="v{{ f.id }}">Correct value</label>
+        <input class="input" id="v{{ f.id }}" name="value" {% if f.field_name == 'revision_date' %}type="date"{% endif %} value="{{ f.value or '' }}" placeholder="{{ 'e.g. H319, H315' if f.field_name.startswith('hazard') else ('e.g. 7732-18-5' if f.field_name.endswith('cas_number') else '') }}" required>
+        <button class="btn btn-primary btn-sm">Save</button></form></details>
+    {% if f.resolution != 'missing' and (f.status != 'missing' or f.reviewed) %}
+    <form method="post" action="/app/fields/{{ f.id }}"><input type="hidden" name="document_id" value="{{ document.id }}"><input type="hidden" name="action" value="missing"><button class="btn btn-secondary btn-sm">Not in SDS</button></form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+{% block content %}
+<a class="back" href="/app/review">‹ Review</a>
+<div class="page-head"><div><h1>{{ document.product_name or document.file_name }}</h1>
+  <p>{% if document.status == 'failed' %}{{ document.error }}{% elif open_count %}{{ open_count }} field{{ 's' if open_count != 1 }} need{{ 's' if open_count == 1 }} review · {{ done|length }} passed or resolved · {{ missing|length }} missing{% elif document.status == 'in_review' %}All doubtful fields are resolved. Approve product to add it to your inventory.{% else %}Approved. Read only.{% endif %}</p></div>
+  {% if document.status == 'in_review' %}
+  <form method="post" action="/app/review/{{ document.id }}/approve"><button class="btn btn-primary" {% if open_count %}disabled title="Resolve the {{ open_count }} field(s) that need review first."{% endif %}>Approve product</button></form>
+  {% endif %}
+</div>
+<div class="split">
+  <div class="fields">
+    {% for title, items in [('Needs review', open_fields), ('Missing', missing), ('Passed checks and resolved', done)] if items %}
+    <div><div class="group-title">{{ title }} ({{ items|length }})</div><div class="card">{% for f in items %}{{ field_row(f) }}{% endfor %}</div></div>
+    {% endfor %}
+    <p class="xs muted">Model: {{ document.provider or '—' }} {{ document.model or '' }} · prompt {{ document.prompt_version or '—' }} · {{ (document.latency_ms / 1000)|round(1) }} s</p>
+  </div>
+  <section class="card viewer" aria-label="Source PDF">
+    <div class="viewer-bar"><span>{{ document.file_name }} · Page {{ page_no }} of {{ document.pages }}</span></div>
+    {% if current and current.reasons and current.value is none and current.quote %}<div class="ai-note">The AI quoted “{{ current.quote }}”, but that text is not in the PDF, so the value was removed. Look for the right value on this page.</div>{% endif %}
+    <div class="desk"><div class="paper"><div class="ln">{{ page_html }}</div></div></div>
+  </section>
+</div>
+{% endblock %}

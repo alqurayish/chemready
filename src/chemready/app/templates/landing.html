@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon, pill %}
+{% block title %}ChemReady · A D-SAi Product{% endblock %}
+{% block body %}
+<div class="landing">
+  <div class="l-top-wrap">
+    <header class="l-top glass">
+      <a class="brand" href="/" style="color:inherit;text-decoration:none"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">ChemReady</span><span class="brand-tag">Prototype</span></a>
+      <nav aria-label="Site">
+        <a class="btn btn-plain hide-sm" href="#how">How it works</a>
+        {% if user %}<a class="btn btn-primary" href="/app/inventory">Open app</a>
+        {% else %}<a class="btn btn-plain" href="/signin">Sign in</a><form class="inline-form" method="post" action="/demo"><button class="btn btn-primary" type="submit">Try demo</button></form>{% endif %}
+      </nav>
+    </header>
+  </div>
+  <div class="l-wrap">
+    <section class="l-hero">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-pill">A D-SAi Product</span></p>
+        <h1>Turn supplier SDS files into an audit-ready chemical inventory.</h1>
+        <p class="lead">Built for chemical and compliance managers in textile wet processing. ChemReady reads your safety data sheets, checks every value in code, and asks you to approve only what is doubtful. Every value links back to its page and quote.</p>
+        <div class="row">
+          <a class="btn btn-primary btn-lg" href="/app/upload">{{ icon('upload') }}Upload documents</a>
+          <form class="inline-form" method="post" action="/demo"><button class="btn btn-secondary btn-lg" type="submit">Try the demo</button></form>
+        </div>
+        <p class="hint">Demo login: <span class="code">demo@chemready.app</span> / <span class="code">demo1234</span>. You sign in only when you upload your own files.</p>
+      </div>
+      <div class="preview glass" aria-label="Example of the review screen"><div class="preview-inner">
+        <div class="preview-bar"><i></i><i></i><i></i><span>Review · Demowet NF</span></div>
+        <div class="preview-body">
+          <div class="preview-fields">
+            <div class="field active"><div class="field-top"><span class="field-label-sm">Revision date · p.1</span>{{ pill('review','Needs review') }}</div><div class="field-value"><span class="muted">—</span></div><div class="reason reason-review">Quote not found in the PDF. The value was removed.</div></div>
+            <div class="field"><div class="field-top"><span class="field-label-sm">CAS · Water · p.3</span>{{ pill('review','Needs review') }}</div><div class="field-value code">7732-18-6</div><div class="reason reason-review">CAS check digit is wrong.</div></div>
+            <div class="field"><div class="field-top"><span class="field-label-sm">H code · p.2</span>{{ pill('passed','Passed checks') }}</div><div class="field-value"><span class="code">H315</span> Causes skin irritation.</div></div>
+          </div>
+          <div class="preview-paper"><div class="paper"><div class="ln sec">SECTION 1: Identification</div><div class="ln">Product name: Demowet NF</div><div class="ln">Supplier: Example Auxiliaries Ltd</div><div class="ln"><mark class="q">Date of revision: 01.03.2025</mark></div><div class="ln muted">Print date: 12.04.2025</div></div></div>
+        </div>
+      </div></div>
+    </section>
+    <section class="l-section" id="how">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><h3>Upload</h3><p>Drop up to 50 SDS PDFs at once.</p></li>
+        <li><h3>Extract and check</h3><p>AI reads each SDS. Plain code checks every quote, CAS number and H code.</p></li>
+        <li><h3>Review what is doubtful</h3><p>You see only the flagged fields, next to the page they came from.</p></li>
+        <li><h3>Export your inventory</h3><p>Approved products become your chemical inventory list, ready for Excel.</p></li>
+      </ol>
+    </section>
+    <section class="l-section">
+      <h2>Built to be trusted by auditors</h2>
+      <div class="principles">
+        <div class="principle glass">{{ icon('shield') }}<h3>The AI never guesses</h3><p>If a value is unsure or fails a check, it goes to a person. Nothing enters your inventory without approval.</p></div>
+        <div class="principle glass">{{ icon('quote') }}<h3>Every value is traced</h3><p>Each value keeps its page number and exact quote, so anyone can check where it came from.</p></div>
+        <div class="principle glass">{{ icon('scale') }}<h3>No conformance claims</h3><p>ChemReady checks your data, not regulation. MRSL conformance stays with the ZDHC Gateway and your solution provider.</p></div>
+      </div>
+    </section>
+    <section class="l-section">
+      <div class="l-cta glass"><p><strong style="color:var(--color-text)">Your files stay private.</strong> Factory files are processed by a local model and are never sent to a free AI service.</p>
+        <a class="btn btn-primary" href="/app/upload">{{ icon('upload') }}Upload documents</a></div>
+    </section>
+    <section class="l-section" id="about">
+      <div class="about glass">
+        <div><p class="about-label">About</p><h2>ChemReady is a D-SAi product</h2>
+          <p>Designed and built by <strong>Md. Alqurayish Sharkar</strong>, AI Product Engineer, to give compliance teams chemical data they can prove.</p></div>
+        <span class="about-mark" aria-hidden="true"><span class="brand-mark"></span></span>
+      </div>
+    </section>
+    <footer class="l-foot"><span><strong>ChemReady Prototype</strong> · A D-SAi Product</span><span>© 2026 D-SAi</span></footer>
+  </div>
+</div>
+{% endblock %}
