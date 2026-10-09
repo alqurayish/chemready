@@ -6,7 +6,9 @@ readme = "README.md"
 license = "MIT"
 authors = [{ name = "Md. Alqurayish Sharkar" }]
 requires-python = ">=3.12,<3.14"
-dependencies = []
+dependencies = [
+    "pydantic-settings>=2.6",
+]
 
 [project.scripts]
 chemready = "chemready.__main__:main"
