@@ -6,8 +6,7 @@ real app with the demo account (fictional data only).
 ## Setup
 
 ```bash
-uv run chemready seed-demo
-CHEMREADY_LLM_PROVIDER=rules uv run chemready serve
+uv run streamlit run streamlit_app.py   # the demo account and fictional files are created for you
 ```
 
 - Browser window 1280 × 800, zoom 100%, bookmarks bar hidden.
@@ -20,8 +19,8 @@ CHEMREADY_LLM_PROVIDER=rules uv run chemready serve
 
 | # | Seconds | Show | Caption to add |
 | --- | --- | --- | --- |
-| 1 | 0 to 5 | Website hero, then click **Try the demo** | "SDS files in, verified inventory out" |
-| 2 | 5 to 12 | Upload: choose a PDF, tick "public SDS", click **Upload and process** | "Upload a batch of supplier SDS PDFs" |
+| 1 | 0 to 5 | The app opens on Upload: choose a PDF, tick "public SDS" | "SDS files in, verified inventory out" |
+| 2 | 5 to 12 | Click **Upload and process**, then **Use the demo account** in the sign-in popup | "Sign in only when you upload" |
 | 3 | 12 to 18 | Review list: the new file goes from processing to **Needs review** | "AI extracts, code checks every value" |
 | 4 | 18 to 32 | Open **Demosoft SL**: the flagged field is first; click a passed field and watch the quote highlight on the page | "Every value is traced to its page and quote" |
 | 5 | 32 to 38 | Mark the doubtful field **Not in SDS**, then **Approve product** | "A person approves only what is doubtful" |

@@ -6,7 +6,7 @@
 
 *ChemReady Prototype · A D-SAi Product · by Md. Alqurayish Sharkar, AI Product Engineer*
 
-**Live demo:** https://chemready-d-sai.streamlit.app/ (fictional data; click **Try the demo**)
+**Live demo:** https://chemready-d-sai.streamlit.app/ (fictional data; choose a PDF, click **Upload and process**, then **Use the demo account** in the sign-in popup)
 
 > **Status: Discovery and working MVP.** The full pipeline (upload, PDF parsing, AI
 > extraction, validation, human review, inventory, action flags and Excel export) is
