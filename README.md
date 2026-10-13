@@ -6,6 +6,8 @@
 
 *ChemReady Prototype · A D-SAi Product · by Md. Alqurayish Sharkar, AI Product Engineer*
 
+**Live demo:** https://chemready-d-sai.streamlit.app/ (fictional data; choose a PDF, click **Upload and process**, then **Use the demo account** in the sign-in popup)
+
 > **Status: Discovery and working MVP.** The full pipeline (upload, PDF parsing, AI
 > extraction, validation, human review, inventory, action flags and Excel export) is
 > built and tested on fictional files. Real accuracy numbers wait for the hand-labelled
@@ -102,6 +104,7 @@ docker run -p 7860:7860 -e CHEMREADY_DEMO=true -e CHEMREADY_LLM_PROVIDER=rules \
   -e CHEMREADY_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" chemready
 ```
 
+Live demo on Streamlit Community Cloud: https://chemready-d-sai.streamlit.app/ ([how it is deployed](docs/deploy-streamlit.md)).
 Public demo on Hugging Face Spaces: see [docs/deploy.md](docs/deploy.md).
 
 ### With a real model

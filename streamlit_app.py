@@ -14,6 +14,7 @@ import os
 import tempfile
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import streamlit as st
@@ -137,10 +138,49 @@ def current_user() -> Row | None:
 
 def sign_in_as(user: Row) -> None:
     st.session_state["user_id"] = user["id"]
-    st.rerun()
+    st.rerun()  # also closes the sign-in popup
 
 
-def header(user: Row | None) -> None:
+@st.dialog("Sign in to continue")
+def sign_in_dialog(reason: str) -> None:
+    """Pop-up sign-in. Shown only when someone needs an account, never as a landing page."""
+    st.caption(reason)
+    sign_in_tab, sign_up_tab = st.tabs(["Sign in", "Create account"])
+    with sign_in_tab, st.form("sign_in"):
+        email = st.text_input("Work email")
+        password = st.text_input("Password", type="password")
+        if st.form_submit_button("Sign in", type="primary", use_container_width=True):
+            try:
+                sign_in_as(auth.sign_in(store, get_throttle(), email=email, password=password))
+            except auth.AuthError as error:
+                st.error(str(error))
+    with sign_up_tab, st.form("sign_up"):
+        name = st.text_input("Full name")
+        new_email = st.text_input("Work email")
+        facility = st.text_input("Facility name")
+        new_password = st.text_input("Password (8+ characters)", type="password")
+        if st.form_submit_button("Create account", type="primary", use_container_width=True):
+            try:
+                user = auth.sign_up(
+                    store,
+                    name=name,
+                    email=new_email,
+                    password=new_password,
+                    facility_name=facility,
+                    max_age=settings.sds_max_age_years,
+                )
+                sign_in_as(user)
+            except auth.AuthError as error:
+                st.error(str(error))
+    st.divider()
+    if st.button("Use the demo account", use_container_width=True):
+        demo = store.user_by_email(DEMO_EMAIL)
+        if demo:
+            sign_in_as(demo)
+    st.caption(f"Demo: {DEMO_EMAIL} / {DEMO_PASSWORD}. Fictional data only.")
+
+
+def header(user: Row | None, sign_in_button: bool = True) -> None:
     left, right = st.columns([3, 2])
     left.markdown(
         '<div class="brand"><span class="brand-mark"></span>ChemReady'
@@ -153,127 +193,91 @@ def header(user: Row | None) -> None:
             f'<div style="text-align:right" class="muted">● {mode} · {html.escape(user["name"])}</div>',
             unsafe_allow_html=True,
         )
+    elif sign_in_button:
+        with right:
+            _, button = st.columns([3, 1])
+            if button.button("Sign in", key="header_sign_in", use_container_width=True):
+                sign_in_dialog("Sign in to see your documents and inventory.")
 
 
-# ---------- Public page ----------
-
-
-def home_page() -> None:
-    header(None)
-    st.markdown("&nbsp;")
-    hero, form = st.columns([3, 2], gap="large")
-    with hero:
-        st.markdown('<span class="pill p-passed">A D-SAi Product</span>', unsafe_allow_html=True)
-        st.title("Turn supplier SDS files into an audit-ready chemical inventory.")
-        st.write(
-            "Built for chemical and compliance managers in textile wet processing. ChemReady reads your "
-            "safety data sheets, checks every value in code, and asks you to approve only what is doubtful. "
-            "Every value "
-            "links back to its page and quote."
-        )
-        if st.button("Try the demo", type="primary"):
-            user = store.user_by_email(DEMO_EMAIL)
-            if user:
-                sign_in_as(user)
-        st.caption(f"Demo login: {DEMO_EMAIL} / {DEMO_PASSWORD}. Fictional data only.")
-    with form, st.container(border=True):
-        sign_in_tab, sign_up_tab = st.tabs(["Sign in", "Create account"])
-        with sign_in_tab, st.form("sign_in"):
-            email = st.text_input("Work email")
-            password = st.text_input("Password", type="password")
-            if st.form_submit_button("Sign in", type="primary", use_container_width=True):
-                try:
-                    sign_in_as(auth.sign_in(store, get_throttle(), email=email, password=password))
-                except auth.AuthError as error:
-                    st.error(str(error))
-        with sign_up_tab, st.form("sign_up"):
-            name = st.text_input("Full name")
-            new_email = st.text_input("Work email ")
-            facility = st.text_input("Facility name")
-            new_password = st.text_input("Password (8+ characters)", type="password")
-            if st.form_submit_button("Create account", type="primary", use_container_width=True):
-                try:
-                    user = auth.sign_up(
-                        store,
-                        name=name,
-                        email=new_email,
-                        password=new_password,
-                        facility_name=facility,
-                        max_age=settings.sds_max_age_years,
-                    )
-                    sign_in_as(user)
-                except auth.AuthError as error:
-                    st.error(str(error))
-
-    st.divider()
-    cols = st.columns(3)
-    for col, (title, text) in zip(
-        cols,
-        [
-            (
-                "The AI never guesses",
-                "Unsure values go to a person. Nothing enters the inventory without approval.",
-            ),
-            ("Every value is traced", "Each value keeps its page number and exact quote."),
-            (
-                "No conformance claims",
-                "ChemReady checks your data, not regulation. MRSL conformance stays with ZDHC.",
-            ),
-        ],
-        strict=True,
-    ):
-        with col, st.container(border=True):
-            st.markdown(f"**{title}**")
-            st.caption(text)
+def footer() -> None:
     st.caption(
-        "ChemReady is a D-SAi product, designed and built by Md. Alqurayish Sharkar, AI Product Engineer. "
-        "© 2026 D-SAi"
+        "ChemReady Prototype · A D-SAi Product · designed and built by Md. Alqurayish Sharkar, "
+        "AI Product Engineer · © 2026 D-SAi"
     )
 
 
-# ---------- App pages ----------
+# ---------- Pages ----------
 
 
 def upload_page() -> None:
-    user = _require_user()
+    """The first page everyone sees. Signing in is asked for only when they upload."""
+    user = current_user()
     header(user)
     st.header("Upload SDS files")
+    st.caption(
+        "ChemReady reads your safety data sheets, checks every value in code, and asks you to approve only "
+        "what is doubtful. Every value links back to its page and quote."
+    )
     st.warning("Public demo: upload fictional or public SDS files only, never a factory's private files.")
-    with st.form("upload", clear_on_submit=True):
-        files = st.file_uploader("SDS PDF files", type=["pdf"], accept_multiple_files=True)
-        public = st.checkbox("These are public SDS files downloaded from the supplier's website", value=True)
-        submitted = st.form_submit_button("Upload and process", type="primary")
-    if submitted and files:
-        try:
-            results = accept_uploads(
-                store,
-                settings,
-                facility_id=user["facility_id"],
-                user_id=user["id"],
-                files=[(f.name, f.getvalue()) for f in files],
-                private=not public,
-            )
-        except ServiceError as error:
-            st.error(str(error))
-            return
-        prices = (settings.price_input_per_million, settings.price_output_per_million)
-        with st.status("Processing…", expanded=True) as status:
-            for result in results:
-                if result.document_id is None:
-                    st.write(f"✕ {result.file_name}: {result.message}")
-                    continue
-                st.write(f"Reading, extracting and checking {result.file_name}…")
-                process_document(store, result.document_id, lambda: make_client(settings), prices)
-                document = store.document(user["facility_id"], result.document_id)
-                outcome = (
-                    document["error"] if document and document["status"] == "failed" else "ready for review"
-                )
-                st.write(f"✓ {result.file_name}: {outcome}")
-            status.update(label="Done. Open Review to check the results.", state="complete")
+    round_no = st.session_state.get("upload_round", 0)
+    with st.container(border=True):
+        files = st.file_uploader(
+            "SDS PDF files (up to 20 MB each)",
+            type=["pdf"],
+            accept_multiple_files=True,
+            key=f"files-{round_no}",
+        )
+        public = st.checkbox(
+            "These are public SDS files downloaded from the supplier's website",
+            value=True,
+            key=f"public-{round_no}",
+        )
+        clicked = st.button("Upload and process", type="primary", disabled=not files)
+
+    if clicked and user is None:
+        # Remember the files (the uploader keeps them) and ask the person to sign in first.
+        st.session_state["pending_upload"] = True
+        sign_in_dialog("Sign in to upload. You will go straight back to your files.")
+        return
+    pending = user is not None and st.session_state.pop("pending_upload", False)
+    if user is not None and files and (clicked or pending):
+        _process_uploads(user, files, public)
+        st.session_state["upload_round"] = round_no + 1  # empty the uploader for the next batch
+    footer()
+
+
+def _process_uploads(user: Row, files: list[Any], public: bool) -> None:
+    try:
+        results = accept_uploads(
+            store,
+            settings,
+            facility_id=user["facility_id"],
+            user_id=user["id"],
+            files=[(f.name, f.getvalue()) for f in files],
+            private=not public,
+        )
+    except ServiceError as error:
+        st.error(str(error))
+        return
+    prices = (settings.price_input_per_million, settings.price_output_per_million)
+    with st.status("Processing…", expanded=True) as status:
+        for result in results:
+            if result.document_id is None:
+                st.write(f"✕ {result.file_name}: {result.message}")
+                continue
+            st.write(f"Reading, extracting and checking {result.file_name}…")
+            process_document(store, result.document_id, lambda: make_client(settings), prices)
+            document = store.document(user["facility_id"], result.document_id)
+            outcome = document["error"] if document and document["status"] == "failed" else "ready for review"
+            st.write(f"✓ {result.file_name}: {outcome}")
+        status.update(label="Done. Open Review to check the results.", state="complete")
 
 
 def review_page() -> None:
-    user = _require_user()
+    user = _gate("your documents to review")
+    if user is None:
+        return
     header(user)
     st.header("Review")
     documents = store.documents(user["facility_id"])
@@ -367,7 +371,9 @@ def _resolve(user: Row, field: Row, action: str, value: str | None) -> None:
 
 
 def inventory_page() -> None:
-    user = _require_user()
+    user = _gate("your inventory")
+    if user is None:
+        return
     header(user)
     products = store.products(user["facility_id"])
     flags = all_flags(store, user["facility_id"], date.today())
@@ -420,7 +426,9 @@ def inventory_page() -> None:
 
 
 def actions_page() -> None:
-    user = _require_user()
+    user = _gate("what needs action")
+    if user is None:
+        return
     header(user)
     st.header("Actions")
     flags = all_flags(store, user["facility_id"], date.today())
@@ -457,7 +465,9 @@ def actions_page() -> None:
 
 
 def settings_page() -> None:
-    user = _require_user()
+    user = _gate("your settings")
+    if user is None:
+        return
     header(user)
     st.header("Settings")
     facility = store.facility(user["facility_id"]) or {}
@@ -485,7 +495,9 @@ def settings_page() -> None:
 
 
 def profile_page() -> None:
-    user = _require_user()
+    user = _gate("your profile")
+    if user is None:
+        return
     header(user)
     st.header("Profile")
     st.write(f"**{user['name']}** · {user['email']} · {user['role']}")
@@ -494,28 +506,27 @@ def profile_page() -> None:
         st.rerun()
 
 
-def _require_user() -> Row:
+def _gate(what: str) -> Row | None:
+    """Return the signed-in user, or show a short sign-in prompt for this page."""
     user = current_user()
     if user is None:
-        st.session_state.pop("user_id", None)
-        st.rerun()
-    assert user is not None  # noqa: S101 - st.rerun() stops the script
+        header(None, sign_in_button=False)  # the card below has its own button
+        with st.container(border=True):
+            st.markdown(f"**Sign in to see {what}.**")
+            st.caption("Or start on the Upload page: you will be asked to sign in when you upload.")
+            if st.button("Sign in", type="primary", key=f"gate-{what}"):
+                sign_in_dialog(f"Sign in to see {what}.")
     return user
 
 
 # ---------- Navigation: a top bar, no sidebar ----------
 
-if current_user() is None:
-    pages = [st.Page(home_page, title="ChemReady", icon=":material/science:", default=True)]
-else:
-    pages = [
-        st.Page(upload_page, title="Upload", icon=":material/upload:", url_path="upload"),
-        st.Page(review_page, title="Review", icon=":material/fact_check:", url_path="review"),
-        st.Page(
-            inventory_page, title="Inventory", icon=":material/table:", url_path="inventory", default=True
-        ),
-        st.Page(actions_page, title="Actions", icon=":material/flag:", url_path="actions"),
-        st.Page(settings_page, title="Settings", icon=":material/tune:", url_path="settings"),
-        st.Page(profile_page, title="Profile", icon=":material/person:", url_path="profile"),
-    ]
+pages = [
+    st.Page(upload_page, title="Upload", icon=":material/upload:", url_path="upload", default=True),
+    st.Page(review_page, title="Review", icon=":material/fact_check:", url_path="review"),
+    st.Page(inventory_page, title="Inventory", icon=":material/table:", url_path="inventory"),
+    st.Page(actions_page, title="Actions", icon=":material/flag:", url_path="actions"),
+    st.Page(settings_page, title="Settings", icon=":material/tune:", url_path="settings"),
+    st.Page(profile_page, title="Profile", icon=":material/person:", url_path="profile"),
+]
 st.navigation(pages, position="top").run()
