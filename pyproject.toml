@@ -17,6 +17,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "pymupdf>=1.25",
     "python-multipart>=0.0.18",
+    "streamlit>=1.46",
     "uvicorn>=0.32",
 ]
 

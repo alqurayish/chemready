@@ -1,0 +1,3 @@
+# Streamlit Community Cloud installs this file. "." installs the chemready package
+# from pyproject.toml, with all its dependencies (including streamlit).
+.
